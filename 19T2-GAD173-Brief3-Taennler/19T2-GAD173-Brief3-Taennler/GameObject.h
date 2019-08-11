@@ -24,7 +24,7 @@ public:
 	GameObject();
 	~GameObject();
 
-	void SetPosition(sf::Vector2f pos);
+	virtual void SetPosition(sf::Vector2f pos);
 	sf::Vector2f GetPosition();
 
 	virtual void Update();

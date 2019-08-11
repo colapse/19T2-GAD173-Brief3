@@ -11,6 +11,9 @@
 #ifndef MovableObject
 #include "MovableObject.h"
 #endif // !MovableObject
+#ifndef PlayerObject
+#include "PlayerObject.h"
+#endif // !PlayerObject
 class Level
 {
 	std::vector<std::vector<std::vector<std::string>>> rawGrid; // Grid with tiletypes' identifiers (as stored in a textfile f.ex.). Used to build tileGrid
@@ -28,13 +31,15 @@ public:
 	std::string levelName; // Name of the level
 	std::string levelFile; // path & filename of level on the filesystem
 
+
 	// TODO needed? std::string saveFile; // path & filename of the level save file on the filesystem
 
 
 	std::vector<std::shared_ptr<GameObject>> gameObjects;
 	std::vector<std::shared_ptr<MovableObject>> movableObjects;
 
-	sf::Vector2f playerSpawnLocation;
+	std::shared_ptr<PlayerObject> playerObject;
+	sf::Vector2f playerSpawnLocation = sf::Vector2f(0,0);
 
 	Level(std::vector<std::vector<std::vector<std::string>>> pRawGrid, float pTileSize, std::string pLevelName);
 
@@ -54,6 +59,8 @@ public:
 
 	static std::shared_ptr<Level> LoadLevelFromFile(std::string file);
 
-	void DrawLevel(sf::RenderWindow &rw);
+	void DrawLevel(sf::RenderWindow &rw, sf::View view);
+
+	void SpawnPlayer(std::shared_ptr<sf::View> playerCamera);
 };
 

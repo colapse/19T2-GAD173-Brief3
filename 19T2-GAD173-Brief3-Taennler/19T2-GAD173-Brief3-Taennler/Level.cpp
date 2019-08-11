@@ -29,6 +29,7 @@ Level::Level(std::vector<std::vector<std::vector<std::string>>> pRawGrid, float 
 
 Level::Level()
 {
+	
 }
 
 
@@ -300,11 +301,26 @@ std::shared_ptr<Level> Level::LoadLevelFromFile(std::string file) {
 	return level;
 }
 
-void Level::DrawLevel(sf::RenderWindow &rw) {
-	
+void Level::DrawLevel(sf::RenderWindow &rw, sf::View view) {
+	rw.setView(view);
 	for (std::shared_ptr<GameObject> go : gameObjects) {
-		rw.draw(go->collider);
+			rw.draw(go->collider);
+
+		rw.draw(go->sprite);
 	}
+}
+
+void Level::SpawnPlayer(std::shared_ptr<sf::View> playerCamera) {
+	if (playerObject != nullptr)
+		return;
+
+	// TODO SET SPRITE ETC
+	playerObject = std::make_shared<PlayerObject>();
+	playerObject->playerCamera = playerCamera;
+	playerObject->collider = sf::RectangleShape(sf::Vector2f(32, 32));
+	playerObject->prefab = GameObjectPrefab::gameObjectPrefabs["Player"];
+	playerObject->sprite.setTexture(*GameObjectPrefab::gameObjectPrefabTextures["Player"]);
+	playerObject->SetPosition(playerSpawnLocation);
 }
 
 /** SplitStringByDeli
