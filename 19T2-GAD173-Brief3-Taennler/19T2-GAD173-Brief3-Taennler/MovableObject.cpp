@@ -9,13 +9,22 @@
 #include <iostream>
 #endif // !_IOSTREAM_
 
+#ifndef _CMATH_
+#include <math.h>
+#endif // !_CMATH_
+
+
 MovableObject::MovableObject(float width, float height)
 {
-	collider = sf::RectangleShape(sf::Vector2f(width*0.97, height*0.97)); // *0.97 make collider bit smaller than the tile
+	collider = sf::RectangleShape(sf::Vector2f(width, height));
+	if(isSolid)
+		collider.setFillColor(sf::Color::Yellow); // For Debug
 }
 
 MovableObject::MovableObject()
 {
+	collider = sf::RectangleShape(sf::Vector2f(32, 32)); // TODO make dynamic tile size
+	collider.setFillColor(sf::Color::Yellow); // For Debug
 	objectMovement = sf::Vector2f(0, 0);
 }
 
@@ -67,17 +76,17 @@ void MovableObject::DoCollisionCheck() {
 		for (std::shared_ptr<Collision> col : collisions) {
 			sf::Vector2f collisionOverlaps = Level::GetObjectDistanceWithinAreaVector(collider.getGlobalBounds(), col->colliderObject->collider.getGlobalBounds());
 			
-			if (col->colliderObject->isSolid && col->collisionSides.y == 1) { // BOTTOM collision
-				solidVertCollisionSides.y = collisionOverlaps.y;// 1;
-			}else if (col->colliderObject->isSolid && col->collisionSides.y == -1) { // TOP collision
-				solidVertCollisionSides.x = collisionOverlaps.y;//1;
+			if (col->colliderObject->isSolid && col->collisionSides.y == 1 && collisionOverlaps.y > solidVertCollisionSides.y && collisionOverlaps.y <= col->colliderObject->collider.getGlobalBounds().height) { // BOTTOM collision
+				solidVertCollisionSides.y = fmod(collisionOverlaps.y, collider.getGlobalBounds().height);
+			}else if (col->colliderObject->isSolid && col->collisionSides.y == -1 && collisionOverlaps.y > solidVertCollisionSides.x && collisionOverlaps.y <= col->colliderObject->collider.getGlobalBounds().height) { // TOP collision
+				solidVertCollisionSides.x = fmod(collisionOverlaps.y, collider.getGlobalBounds().height);
 			}
 
-			if (col->colliderObject->isSolid && col->collisionSides.x == 1) { // RIGHT collision
-				solidHorCollisionSides.y = collisionOverlaps.x;// 1;
+			if (col->colliderObject->isSolid && col->collisionSides.x == -1 && collisionOverlaps.x > solidHorCollisionSides.y && collisionOverlaps.x <= col->colliderObject->collider.getGlobalBounds().width) { // RIGHT collision
+				solidHorCollisionSides.y = collisionOverlaps.x;
 			}
-			else if (col->colliderObject->isSolid && col->collisionSides.x == -1) { // LEFT collision
-				solidHorCollisionSides.x = collisionOverlaps.x;// 1;
+			else if (col->colliderObject->isSolid && col->collisionSides.x == 1 && collisionOverlaps.x > solidHorCollisionSides.x && collisionOverlaps.x <= col->colliderObject->collider.getGlobalBounds().width) { // LEFT collision
+				solidHorCollisionSides.x = collisionOverlaps.x;
 			}
 		}
 	}
@@ -110,8 +119,10 @@ void MovableObject::CalculateMovement() {
 	}
 
 	// Garvity
-	if (objectMovement.y < gravity)
+	if (!grounded && objectMovement.y < gravity)
 		objectMovement.y += gravity * Level::deltaTime;
+	else if(grounded)
+		objectMovement.y = 0;
 
 	// Input Movement
 	float speed = grounded ? groundSpeed : airSpeed;
@@ -160,20 +171,22 @@ void MovableObject::CalculateMovement() {
 	if (solidVertCollisionSides.x != 0)
 		playerMovement.y = 0;*/
 
-	if (solidHorCollisionSides.x != 0 && objectMovement.x > 0) {
+	if (solidHorCollisionSides.y > 2/* && objectMovement.x > 0*/) { // RIGHT
 		objectMovement.x = 0;
-		Move(sf::Vector2f(-solidHorCollisionSides.x, 0));
+		Move(sf::Vector2f(-solidHorCollisionSides.y, 0));
+		//std::cout << std::to_string(-solidHorCollisionSides.x) << std::endl;
 	}
-	else if (solidHorCollisionSides.y != 0 && objectMovement.x < 0) {
+	if (solidHorCollisionSides.x > 2/* && objectMovement.x < 0*/) { // LEFT
 		objectMovement.x = 0;
 		Move(sf::Vector2f(solidHorCollisionSides.x, 0));
+		//std::cout << std::to_string(solidHorCollisionSides.y) << std::endl;
 	}
 
-	if (solidVertCollisionSides.x != 0 && objectMovement.y < 0) {
+	if (solidVertCollisionSides.x > 2/* && objectMovement.y < 0*/) {//UP
 		objectMovement.y = 0;
-		Move(sf::Vector2f(0, solidVertCollisionSides.y));
+		Move(sf::Vector2f(0, solidVertCollisionSides.x));
 	}
-	else if (solidVertCollisionSides.y != 0 && objectMovement.y > 0) {
+	else if (solidVertCollisionSides.y > 2/* && objectMovement.y > 0 */ ) {//DOWN
 		objectMovement.y = 0;
 		Move(sf::Vector2f(0, -solidVertCollisionSides.y));
 

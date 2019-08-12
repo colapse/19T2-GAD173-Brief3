@@ -9,12 +9,13 @@ GameObject::GameObject()
 
 GameObject::GameObject(float width, float height)
 {
-	collider = sf::RectangleShape(sf::Vector2f(width*0.97, height*0.97)); // *0.97 make collider bit smaller than the tile
+	collider = sf::RectangleShape(sf::Vector2f(width, height)); 
 }
 
 
 GameObject::~GameObject()
 {
+	Destroy();
 }
 
 void GameObject::SetPosition(sf::Vector2f pos) {
@@ -25,6 +26,11 @@ void GameObject::SetPosition(sf::Vector2f pos) {
 
 sf::Vector2f GameObject::GetPosition() {
 	return this->pos;
+}
+
+void GameObject::Start() {
+	if(isSolid)
+		collider.setFillColor(sf::Color::Red); // For Debug
 }
 
 void GameObject::Update() {
@@ -45,4 +51,10 @@ void GameObject::OnCollisionEnter(std::shared_ptr<Collision> collider) {
 
 void GameObject::OnTriggerEnter(std::shared_ptr<Collision> collider) {
 	// TODO
+}
+
+void GameObject::Destroy() {
+	for (std::function<void()> func : OnRequestDestroy) {
+		func();
+	}
 }

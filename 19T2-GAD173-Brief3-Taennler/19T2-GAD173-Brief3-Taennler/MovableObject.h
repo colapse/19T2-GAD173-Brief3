@@ -15,7 +15,7 @@ public:
 	float groundFriction = 0.009;
 	float airFriction = 0.0001;
 
-	float groundSpeed = 50;
+	float groundSpeed = 20;
 	float airSpeed = 10;
 
 	float jumpForce = -10;

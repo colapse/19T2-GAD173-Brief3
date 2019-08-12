@@ -26,6 +26,8 @@ class Level
 	 * Initializes the gameObjectGrid.
 	*/
 	void InitializeGameObjectGrid();
+
+	float collisionCheckCooldownCounter = 0;
 public:
 	static float deltaTime;
 	static const float defaultTileSize; // The default size of a tile if not specified differently
@@ -75,5 +77,8 @@ public:
 	void SpawnPlayer(std::shared_ptr<sf::View> playerCamera);
 
 	void Update();
+
+	void RemoveGameObject(std::shared_ptr<GameObject> gameObject);
+	void RemoveMovableObject(std::shared_ptr<MovableObject> gameObject);
 };
 

@@ -39,9 +39,22 @@ Level::Level()
 	
 }
 
-
 Level::~Level()
 {
+}
+
+void Level::RemoveGameObject(std::shared_ptr<GameObject> gameObject) {
+	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), gameObject), gameObjects.end());
+	if(gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end())
+		gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
+}
+
+void Level::RemoveMovableObject(std::shared_ptr<MovableObject> gameObject) {
+	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), gameObject), gameObjects.end());
+	movableObjects.erase(std::remove(movableObjects.begin(), movableObjects.end(), gameObject), movableObjects.end());
+	if (gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end())
+		gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
+	
 }
 
 void Level::InitializeGameObjectGrid() {
@@ -63,9 +76,18 @@ void Level::InitializeGameObjectGrid() {
 						gameobj_ptr->SetPosition(sf::Vector2f(x*tileSize, y*tileSize));
 						gameobj_ptr->isSolid = GameObjectPrefab::gameObjectPrefabs[s]->isSolid;
 
+						// Create a function which deletes the object from the level when its requested to be destroyed
+						auto deleteObjFunc = [this, gameobj_ptr]() {
+							RemoveGameObject(gameobj_ptr);
+						};
+						gameobj_ptr->OnRequestDestroy.push_back(deleteObjFunc);
+
+						gameobj_ptr->Start();
+
 						gameObjectGrid[y][x].push_back(gameobj_ptr);
 						gameObjects.push_back(gameobj_ptr);
 						
+						gameobj_ptr->renderLayer = 0;
 						if (gameObjectsDrawLayer.find(0) == gameObjectsDrawLayer.end()) {
 							gameObjectsDrawLayer.insert({0,std::vector<std::shared_ptr<GameObject>>(1,gameobj_ptr)});
 						}
@@ -86,10 +108,20 @@ void Level::InitializeGameObjectGrid() {
 							gameobj_ptr->SetPosition(sf::Vector2f(x*tileSize, y*tileSize));
 							gameobj_ptr->isSolid = GameObjectPrefab::gameObjectPrefabs[s]->isSolid;
 
+							// Create a function which deletes the object from the level when its requested to be destroyed
+							auto deleteObjFunc = [this, gameobj_ptr]() {
+								RemoveMovableObject(gameobj_ptr);
+							};
+							gameobj_ptr->OnRequestDestroy.push_back(deleteObjFunc);
+
+
+							gameobj_ptr->Start();
+
 							//gameObjectGrid[y][x].push_back(gameobj_ptr);
 							gameObjects.push_back(gameobj_ptr);
 							movableObjects.push_back(gameobj_ptr);
 
+							gameobj_ptr->renderLayer = 1;
 							if (gameObjectsDrawLayer.find(1) == gameObjectsDrawLayer.end()) {
 								gameObjectsDrawLayer.insert({ 1,std::vector<std::shared_ptr<GameObject>>(1,gameobj_ptr) });
 							}
@@ -114,7 +146,13 @@ void Level::AddGameObjectAtCoord(unsigned int x, unsigned int y, GameObjectPrefa
 }
 
 void Level::DoCollisionChecks() {
+	if (movableObjects.size() == 0)
+		return;
+
 	for (std::shared_ptr<MovableObject> movableObject : movableObjects) {
+		if (movableObject == nullptr)
+			continue;
+
 		movableObject->collisions.clear();
 		movableObject->solidHorCollisionSides = sf::Vector2f(0, 0);
 		movableObject->solidVertCollisionSides = sf::Vector2f(0, 0);
@@ -231,23 +269,26 @@ sf::Vector2f Level::GetCollisionSideVector(sf::FloatRect objectOne, sf::FloatRec
 */
 sf::Vector2f Level::GetObjectDistanceWithinAreaVector(sf::FloatRect objectBounds, sf::FloatRect areaBounds) {
 	sf::Vector2f outOfBoundsVec(0, 0);
-
+	//float skin = 10;
 	// Check if object is within the area
-	sf::Vector2f outOfBounds = Level::IsObjectWithinAreaVector(objectBounds, areaBounds);
-	if (outOfBounds.x == 0 && outOfBounds.y == 0)
+	sf::Vector2f collisionSides = Level::GetCollisionSideVector(objectBounds, areaBounds);
+	if (collisionSides.x == 0 && collisionSides.y == 0)
 		return outOfBoundsVec;
 
 	// Check Left Side of object
-	if (areaBounds.left + areaBounds.width > objectBounds.left)
-		outOfBoundsVec.x = std::abs(objectBounds.left) - std::abs(areaBounds.left + areaBounds.width);
-	// Check Right Side of object
-	if (objectBounds.left + objectBounds.width > areaBounds.left)
-		outOfBoundsVec.x = std::abs(objectBounds.left + objectBounds.width)- std::abs(areaBounds.left);
+	if (collisionSides.x == 1 && areaBounds.left + areaBounds.width > objectBounds.left) {
+		float distance = std::abs(areaBounds.left + areaBounds.width - objectBounds.left);
+		outOfBoundsVec.x = distance;// std::abs(distance) < areaBounds.width ? distance : 0;
+		//std::cout << std::to_string(areaBounds.left) + " + " + std::to_string(areaBounds.width) + " - " + std::to_string(objectBounds.left) << std::endl;
+	}else if (collisionSides.x == -1 && objectBounds.left + objectBounds.width > areaBounds.left){// Check Right Side of object
+		float distance = std::abs(objectBounds.left + objectBounds.width - areaBounds.left);
+		outOfBoundsVec.x = distance;// std::abs(distance) < areaBounds.width ? distance : 0;
+	}
+
 	// Check Top Side of object
-	if (objectBounds.top < areaBounds.top + areaBounds.height)
-		outOfBoundsVec.y = std::abs(objectBounds.top) - std::abs(areaBounds.top + areaBounds.height);
-	// Check Bottom Side of object
-	if (objectBounds.top+objectBounds.height > areaBounds.top)
+	if (collisionSides.y == -1 && objectBounds.top < areaBounds.top + areaBounds.height)
+		outOfBoundsVec.y = std::abs(areaBounds.top + areaBounds.height)- std::abs(objectBounds.top);
+	else if (collisionSides.y == 1 && objectBounds.top+objectBounds.height > areaBounds.top)// Check Bottom Side of object
 		outOfBoundsVec.y = std::abs(objectBounds.top + objectBounds.height) - std::abs(areaBounds.top);
 	return outOfBoundsVec;
 }
@@ -429,8 +470,9 @@ void Level::DrawLevel(sf::RenderWindow &rw, sf::View view) {
 	for (auto & layerEntries : gameObjectsDrawLayer) {
 		if (layerEntries.second.size() > 0) {
 			for (std::shared_ptr<GameObject> go : layerEntries.second) {
-				//rw.draw(go->collider);
-				rw.draw(go->sprite);
+				//rw.draw(go->collider); // For Debug
+				if(go != nullptr)
+					rw.draw(go->sprite);
 			}
 		}
 		
@@ -448,10 +490,13 @@ void Level::SpawnPlayer(std::shared_ptr<sf::View> playerCamera) {
 	playerObject->prefab = GameObjectPrefab::gameObjectPrefabs["Player"];
 	playerObject->sprite.setTexture(*GameObjectPrefab::gameObjectPrefabTextures["Player"]);
 	playerObject->SetPosition(playerSpawnLocation);
+	playerObject->isSolid = true;
+
+	playerObject->Start();
 
 	gameObjects.push_back(playerObject);
 	movableObjects.push_back(playerObject);
-
+	playerObject->renderLayer = 3;
 	if (gameObjectsDrawLayer.find(3) == gameObjectsDrawLayer.end()) {
 		gameObjectsDrawLayer.insert({ 3,std::vector<std::shared_ptr<GameObject>>(1,playerObject) });
 	}
@@ -471,7 +516,12 @@ void Level::Update() {
 	}*/
 
 	// Checks if a movable object collided with any object
-	DoCollisionChecks();
+	if (collisionCheckCooldownCounter <= 0) {
+		DoCollisionChecks();
+		//collisionCheckCooldownCounter = 0.05;
+	}
+	else
+		collisionCheckCooldownCounter -= deltaTime;
 
 	// Calls the Update() Method of each gameobject
 	for (std::shared_ptr<GameObject> go : gameObjects) {
@@ -482,6 +532,7 @@ void Level::Update() {
 			// TODO CHeck if its out of bounds NOT WORKING
 			sf::Vector2f outOfBounds = Level::IsObjectWithinAreaVectorInclusive(go->collider.getGlobalBounds(), sf::FloatRect(0, 0, gridSize.x*tileSize, gridSize.y * tileSize));
 			if (outOfBounds.x != 0 || outOfBounds.y != 0) {
+				std::cout << "OBJ OUT OF BOUNDS" << std::endl;
 				std::shared_ptr<MovableObject> mo = std::dynamic_pointer_cast<MovableObject>(go);
 				sf::Vector2f newPos = mo->GetPosition();
 

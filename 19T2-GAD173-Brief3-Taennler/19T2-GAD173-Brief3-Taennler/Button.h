@@ -22,7 +22,7 @@ class Button
 	sf::Font font; // Font used for the text component
 	std::shared_ptr <sf::Text> _txtText; // Text component of the button
 	std::shared_ptr<sf::Shape> _shape; // Pointer to a shape. (=> Buttons "boundaries")
-	std::shared_ptr <sf::Sprite> _sprite; // (Optional) Used for an image button
+	std::shared_ptr<sf::Sprite> _sprite; // (Optional) Used for an image button
 
 	// Private Variables: Input Event Functions. They store functions (Such as lambda functions) which will be executed on specific input events
 	std::vector<std::function<void()>> btnDownFuncs;

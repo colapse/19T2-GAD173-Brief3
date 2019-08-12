@@ -12,11 +12,12 @@
 
 PlayerObject::PlayerObject(float width, float height)
 {
-	collider = sf::RectangleShape(sf::Vector2f(width*0.97, height*0.97)); // *.97 make collider bit smaller than the tile
+	collider = sf::RectangleShape(sf::Vector2f(width, height));
 }
 
 PlayerObject::PlayerObject()
 {
+	collider = sf::RectangleShape(sf::Vector2f(32, 32)); // TODO make dynamic tile size
 }
 
 
@@ -29,6 +30,10 @@ void PlayerObject::SetPosition(sf::Vector2f pos) {
 	collider.setPosition(pos);
 	sprite.setPosition(pos);
 	playerCamera->setCenter(pos);
+}
+
+void PlayerObject::Start() {
+	collider.setFillColor(sf::Color::Green); // For Debug
 }
 
 void PlayerObject::Update() {
@@ -83,4 +88,13 @@ void PlayerObject::Move(sf::Vector2f movementVector) {
 	playerCamera->move(movementVector);
 
 	this->pos = collider.getPosition();
+}
+
+void PlayerObject::OnTriggerEnter(std::shared_ptr<Collision> collider) {
+	if (collider->colliderObject->prefab->gameObjectId == "Coin") {
+		coins++;
+		collider->colliderObject->Destroy();
+		std::cout << "GOT A COIN!" << std::endl;
+		return;
+	}
 }
