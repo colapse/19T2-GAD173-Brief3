@@ -16,7 +16,7 @@ bool GameObjectPrefab::IsValidGOPrefabChar(std::string s) {
 	return false;
 }
 
-GameObjectPrefab::GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite) : gameObjectId(pGameObjectId), name(pName), spriteLoc(gameObjectSprite) {
+GameObjectPrefab::GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite, bool isStatic, bool isSolid) : gameObjectId(pGameObjectId), name(pName), spriteLoc(gameObjectSprite), isStatic(isStatic), isSolid(isSolid) {
 
 }
 

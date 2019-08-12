@@ -28,8 +28,10 @@ public:
 	const std::string gameObjectId; // string ID of the gameobejct type
 	const std::string name; // Name of the gameobject
 	const std::string spriteLoc; // Path + Filename of the image representing the gameobject
+	const bool isStatic = true;
+	const bool isSolid = true;
 
-	GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite);
+	GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite, bool isStatic, bool isSolid);
 	GameObjectPrefab();
 	~GameObjectPrefab();
 };

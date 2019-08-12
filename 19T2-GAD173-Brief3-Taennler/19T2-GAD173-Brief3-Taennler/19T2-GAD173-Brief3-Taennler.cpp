@@ -4,11 +4,12 @@
 #include "pch.h"
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "Level.h"
 #include "GameObject.h"
 #include "MovableObject.h"
+#include "PlayerObject.h"
 #include "Collision.h"
 #include "GameObjectPrefab.h"
-#include "Level.h"
 #include "Button.h"
 #include <filesystem>
 
@@ -83,13 +84,13 @@ void InitVars() {
 
 	// Initialize Gameobject Types
 	GameObjectPrefab::gameObjectPrefabs = {
-		{"0",new GameObjectPrefab("0", "Air", texturePath + "BlockSky.PNG")},
-		{"1",new GameObjectPrefab("1", "Ground", texturePath + "BlockPlatform.PNG")},
-		{"2",new GameObjectPrefab("2", "Lava", texturePath + "LavaAnimated.GIF")},
-		{"Coin",new GameObjectPrefab("Coin", "Coin", texturePath + "CoinAnimated.GIF")},
-		{"Enemy",new GameObjectPrefab("Enemy", "Enemy Spawn", texturePath + "EnemyAlive.PNG")},
-		{"Player",new GameObjectPrefab("Player", "Player Spawn", texturePath + "Player.PNG")},
-		{"Exit",new GameObjectPrefab("Exit", "Player Exit", texturePath + "Door.PNG")}
+		{"0",new GameObjectPrefab("0", "Air", texturePath + "BlockSky.PNG", true, false)},
+		{"1",new GameObjectPrefab("1", "Ground", texturePath + "BlockPlatform.PNG", true, true)},
+		{"2",new GameObjectPrefab("2", "Lava", texturePath + "LavaAnimated.GIF", true, false)},
+		{"Coin",new GameObjectPrefab("Coin", "Coin", texturePath + "CoinAnimated.GIF", false, false)},
+		{"Enemy",new GameObjectPrefab("Enemy", "Enemy Spawn", texturePath + "EnemyAlive.PNG", false, true)},
+		{"Player",new GameObjectPrefab("Player", "Player Spawn", texturePath + "Player.PNG", false, true)},
+		{"Exit",new GameObjectPrefab("Exit", "Player Exit", texturePath + "Door.PNG", true, false)}
 	};
 
 	LoadTileTextures(32, 32); // Loads the tile/gameobject textures with size 32x32px
@@ -101,7 +102,7 @@ void InitVars() {
 	//views[ViewName::GameHeader]->zoom(1);
 	views.insert({ ViewName::Game,std::make_shared<sf::View>(sf::FloatRect(0, 0, windowSize.x, windowSize.y*0.9f)) });
 	views[ViewName::Game]->setViewport(sf::FloatRect(0, 0.1f, 1, 0.9f));
-	views[ViewName::Game]->zoom(3);
+	//views[ViewName::Game]->zoom(3);
 
 }
 
@@ -226,6 +227,19 @@ void GameLoop() {
 				window.setView(*views[activeView]);
 
 				if (activeView == ViewName::Game && activeLevel != nullptr) {
+					Level::deltaTime = deltaTime;
+					activeLevel->Update();
+					for (sf::Keyboard::Key key : keyPresses) {
+						for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
+							movableObject->OnKeyDown(key);
+						}
+					}
+					for (sf::Keyboard::Key key : keyReleases) {
+						for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
+							movableObject->OnKeyUp(key);
+						}
+					}
+
 					activeLevel->DrawLevel(window, *views[activeView]);
 				}else if (viewDrawables.find(activeView) != viewDrawables.end())
 				{

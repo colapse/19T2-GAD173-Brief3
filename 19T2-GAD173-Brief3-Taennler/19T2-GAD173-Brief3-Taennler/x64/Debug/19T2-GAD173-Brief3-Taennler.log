@@ -1,21 +1,12 @@
 ﻿  19T2-GAD173-Brief3-Taennler.cpp
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(18): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(19): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(98): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(15): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(16): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(99): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(99): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=int
-          ]
-          and
-          [
-              T=float
-          ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(102): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(100): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=int
@@ -24,7 +15,7 @@ c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler
           [
               T=float
           ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(392): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(103): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=int
@@ -33,4 +24,63 @@ c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler
           [
               T=float
           ]
-  19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\lucat\Documents\gitlocal\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Debug\19T2-GAD173-Brief3-Taennler.exe
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(406): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
+  Collision.cpp
+  GameObject.cpp
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\gameobject.cpp(12): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+  Level.cpp
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(15): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(16): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(26): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(31): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(33): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(79): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(320): warning C4129: '(': unrecognized character escape sequence
+  MovableObject.cpp
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(15): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(16): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.cpp(14): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.cpp(131): warning C4305: '=': truncation from 'double' to 'float'
+  PlayerObject.cpp
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(15): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(16): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\playerobject.cpp(15): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+  Generating Code...
+c:\users\ltnnler\documents\gitrepo\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(110): warning C4715: 'Level::GetGameObjectsAtCoord': not all control paths return a value
+  19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\ltnnler\Documents\gitrepo\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Debug\19T2-GAD173-Brief3-Taennler.exe

@@ -24,6 +24,8 @@ public:
 	GameObject();
 	~GameObject();
 
+	int renderLayer = 0;
+
 	virtual void SetPosition(sf::Vector2f pos);
 	sf::Vector2f GetPosition();
 
@@ -32,5 +34,6 @@ public:
 	virtual void OnKeyDown(sf::Keyboard::Key key);
 
 	virtual void OnCollisionEnter(std::shared_ptr<Collision> collider);
+	virtual void OnTriggerEnter(std::shared_ptr<Collision> collider);
 };
 

@@ -9,7 +9,7 @@ GameObject::GameObject()
 
 GameObject::GameObject(float width, float height)
 {
-	collider = sf::RectangleShape(sf::Vector2f(width, height));
+	collider = sf::RectangleShape(sf::Vector2f(width*0.97, height*0.97)); // *0.97 make collider bit smaller than the tile
 }
 
 
@@ -28,7 +28,7 @@ sf::Vector2f GameObject::GetPosition() {
 }
 
 void GameObject::Update() {
-	SetPosition(sf::Vector2f(this->pos.x+1, this->pos.x + 1));
+	
 }
 
 void GameObject::OnKeyUp(sf::Keyboard::Key key) {
@@ -40,5 +40,9 @@ void GameObject::OnKeyDown(sf::Keyboard::Key key) {
 }
 
 void GameObject::OnCollisionEnter(std::shared_ptr<Collision> collider) {
+	// TODO
+}
+
+void GameObject::OnTriggerEnter(std::shared_ptr<Collision> collider) {
 	// TODO
 }

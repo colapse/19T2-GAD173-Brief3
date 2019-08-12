@@ -16,7 +16,14 @@
 #include "GameObjectPrefab.h"
 #endif // !GameObjectType
 
+
+
+#ifndef _IOSTREAM_
+#include <iostream>
+#endif // !_IOSTREAM_
+
 const float Level::defaultTileSize = 32;
+float Level::deltaTime = 0.01;
 
 std::vector<std::string> SplitStringByDeli(std::string stringToSplit, char delimeter);// TODO
 
@@ -47,16 +54,50 @@ void Level::InitializeGameObjectGrid() {
 				if (GameObjectPrefab::IsValidGOPrefabChar(s)) {
 					// TODO: Check if is GameObject or MovableObject!
 
-					std::shared_ptr<GameObject> gameobj_ptr = std::make_shared<GameObject>(tileSize, tileSize);
-					//gameobj_ptr->sprite = sf::Sprite(*GameObjectPrefab::gameObjectPrefabTextures[s]);
-					gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
-					gameobj_ptr->collider.setTexture(GameObjectPrefab::gameObjectPrefabTextures[s]);
-					gameobj_ptr->collider.setPosition(x*tileSize, y*tileSize);
+					// Differentiate between Gameobject type
+					if (GameObjectPrefab::gameObjectPrefabs[s]->isStatic) {// Simple GameObject
+						std::shared_ptr<GameObject> gameobj_ptr = std::make_shared<GameObject>(tileSize, tileSize);
+						//gameobj_ptr->sprite = sf::Sprite(*GameObjectPrefab::gameObjectPrefabTextures[s]);
+						gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
+						gameobj_ptr->sprite.setTexture(*GameObjectPrefab::gameObjectPrefabTextures[s]);
+						gameobj_ptr->SetPosition(sf::Vector2f(x*tileSize, y*tileSize));
+						gameobj_ptr->isSolid = GameObjectPrefab::gameObjectPrefabs[s]->isSolid;
 
-					gameObjectGrid[y][x].push_back(gameobj_ptr);
-					gameObjects.push_back(gameobj_ptr);
+						gameObjectGrid[y][x].push_back(gameobj_ptr);
+						gameObjects.push_back(gameobj_ptr);
+						
+						if (gameObjectsDrawLayer.find(0) == gameObjectsDrawLayer.end()) {
+							gameObjectsDrawLayer.insert({0,std::vector<std::shared_ptr<GameObject>>(1,gameobj_ptr)});
+						}
+						else {
+							gameObjectsDrawLayer[0].push_back(gameobj_ptr);
+						}
+					}
+					else {
+						// TODO HandleEnemies (Make Enemy/AIObject class)
+						if (s == "Player") { // Player (Don't spawn him yet
+							playerSpawnLocation = sf::Vector2f(x*gridSize.x, y*gridSize.y);
+						}
+						else {// MovableObject
+							std::shared_ptr<MovableObject> gameobj_ptr = std::make_shared<MovableObject>(tileSize, tileSize);
+							//gameobj_ptr->sprite = sf::Sprite(*GameObjectPrefab::gameObjectPrefabTextures[s]);
+							gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
+							gameobj_ptr->sprite.setTexture(*GameObjectPrefab::gameObjectPrefabTextures[s]);
+							gameobj_ptr->SetPosition(sf::Vector2f(x*tileSize, y*tileSize));
+							gameobj_ptr->isSolid = GameObjectPrefab::gameObjectPrefabs[s]->isSolid;
 
-					// TodO if movable object... add to movableobjects list... 
+							//gameObjectGrid[y][x].push_back(gameobj_ptr);
+							gameObjects.push_back(gameobj_ptr);
+							movableObjects.push_back(gameobj_ptr);
+
+							if (gameObjectsDrawLayer.find(1) == gameObjectsDrawLayer.end()) {
+								gameObjectsDrawLayer.insert({ 1,std::vector<std::shared_ptr<GameObject>>(1,gameobj_ptr) });
+							}
+							else {
+								gameObjectsDrawLayer[1].push_back(gameobj_ptr);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -74,17 +115,27 @@ void Level::AddGameObjectAtCoord(unsigned int x, unsigned int y, GameObjectPrefa
 
 void Level::DoCollisionChecks() {
 	for (std::shared_ptr<MovableObject> movableObject : movableObjects) {
+		movableObject->collisions.clear();
+		movableObject->solidHorCollisionSides = sf::Vector2f(0, 0);
+		movableObject->solidVertCollisionSides = sf::Vector2f(0, 0);
 		for (std::shared_ptr<GameObject> gameObject : gameObjects) {
 			if (gameObject != movableObject) {
 				sf::Vector2f collisions = GetCollisionSideVector(movableObject->collider.getGlobalBounds(), gameObject->collider.getGlobalBounds());
-				
-				
-				if (collisions.x != 0 && collisions.y != 0) {
+
+				if (collisions.x != 0 || collisions.y != 0) {
 					// Notify Collision for movable object
 					auto movCol = std::make_shared<Collision>();
 					movCol->colliderObject = gameObject;
 					movCol->collisionSides = collisions;
-					movableObject->OnCollisionEnter(movCol);
+
+					if (gameObject->isSolid) {
+						//std::cout << "Collision... Solid" << std::endl;
+						movableObject->OnCollisionEnter(movCol);
+					}
+					else {
+						//std::cout << "Collision... Trigger" << std::endl;
+						movableObject->OnTriggerEnter(movCol);
+					}
 
 					// Invert collision side vector
 					sf::Vector2f collisionsInverted = collisions;
@@ -95,7 +146,11 @@ void Level::DoCollisionChecks() {
 					auto goCol = std::make_shared<Collision>();
 					goCol->colliderObject = movableObject;
 					goCol->collisionSides = collisionsInverted;
-					gameObject->OnCollisionEnter(goCol);
+
+					if (movableObject->isSolid)
+						gameObject->OnCollisionEnter(goCol);
+					else
+						gameObject->OnTriggerEnter(goCol);
 				}
 			}
 		}
@@ -171,6 +226,74 @@ sf::Vector2f Level::GetCollisionSideVector(sf::FloatRect objectOne, sf::FloatRec
 	return collisionSides;
 }
 
+/** GetObjectDistanceWithinAreaVector: Checks wheither the object is within an area and the distance how far in it is.
+ * @return sf::Vector2f x=negative: left, x=positive: right, y=negative: top, y=positive: bottom, x/y=0: not in bounds
+*/
+sf::Vector2f Level::GetObjectDistanceWithinAreaVector(sf::FloatRect objectBounds, sf::FloatRect areaBounds) {
+	sf::Vector2f outOfBoundsVec(0, 0);
+
+	// Check if object is within the area
+	sf::Vector2f outOfBounds = Level::IsObjectWithinAreaVector(objectBounds, areaBounds);
+	if (outOfBounds.x == 0 && outOfBounds.y == 0)
+		return outOfBoundsVec;
+
+	// Check Left Side of object
+	if (areaBounds.left + areaBounds.width > objectBounds.left)
+		outOfBoundsVec.x = std::abs(objectBounds.left) - std::abs(areaBounds.left + areaBounds.width);
+	// Check Right Side of object
+	if (objectBounds.left + objectBounds.width > areaBounds.left)
+		outOfBoundsVec.x = std::abs(objectBounds.left + objectBounds.width)- std::abs(areaBounds.left);
+	// Check Top Side of object
+	if (objectBounds.top < areaBounds.top + areaBounds.height)
+		outOfBoundsVec.y = std::abs(objectBounds.top) - std::abs(areaBounds.top + areaBounds.height);
+	// Check Bottom Side of object
+	if (objectBounds.top+objectBounds.height > areaBounds.top)
+		outOfBoundsVec.y = std::abs(objectBounds.top + objectBounds.height) - std::abs(areaBounds.top);
+	return outOfBoundsVec;
+}
+
+/** IsObjectWithinAreaVector: Checks whether an object is within another one & returns a vector indicating on which side it is out of bounds
+ * @return sf::Vector2f x=-1: left, x=1: right, y=-1: top, y=1: bottom, x/y=0: in bounds
+*/
+sf::Vector2f Level::IsObjectWithinAreaVector(sf::FloatRect objectBounds, sf::FloatRect areaBounds) {
+	sf::Vector2f outOfBoundsVec(0, 0);
+	// Check Left Side
+	if (objectBounds.left < areaBounds.left)
+		outOfBoundsVec.x = -1;
+	// Check Right Side
+	if (objectBounds.left + objectBounds.width > areaBounds.left + areaBounds.width)
+		outOfBoundsVec.x = 1;
+	// Check Top Side
+	if (objectBounds.top < areaBounds.top)
+		outOfBoundsVec.y = -1;
+	// Check Bottom Side
+	if (objectBounds.top + objectBounds.height > areaBounds.top + areaBounds.height)
+		outOfBoundsVec.y = 1;
+
+	return outOfBoundsVec;
+}
+
+/** IsObjectWithinAreaVectorInclusive: Checks whether an object is within another one & returns a vector indicating on which side it is out of bounds (Border already == collision)
+ * @return sf::Vector2f x=-1: left, x=1: right, y=-1: top, y=1: bottom, x/y=0: in bounds
+*/
+sf::Vector2f Level::IsObjectWithinAreaVectorInclusive(sf::FloatRect objectBounds, sf::FloatRect areaBounds) {
+	sf::Vector2f outOfBoundsVec(0, 0);
+	// Check Left Side
+	if (objectBounds.left <= areaBounds.left)
+		outOfBoundsVec.x = -1;
+	// Check Right Side
+	if (objectBounds.left + objectBounds.width >= areaBounds.left + areaBounds.width)
+		outOfBoundsVec.x = 1;
+	// Check Top Side
+	if (objectBounds.top <= areaBounds.top)
+		outOfBoundsVec.y = -1;
+	// Check Bottom Side
+	if (objectBounds.top + objectBounds.height >= areaBounds.top + areaBounds.height)
+		outOfBoundsVec.y = 1;
+
+	return outOfBoundsVec;
+}
+
 /** LoadLevelFromFile
  * Loads level data from a file, creates a Level Object of it and returns a pointer to the Level object.
  * @param file Path & filename to the file containing the level data
@@ -241,7 +364,7 @@ std::shared_ptr<Level> Level::LoadLevelFromFile(std::string file) {
 						std::string goPrefabType;
 
 						// Check if current char isn't a valid tile type ID
-						if (!GameObjectPrefab::IsValidGOPrefabChar(""+line[i])) {
+						if (!GameObjectPrefab::IsValidGOPrefabChar(std::string(1, line[i]))) {
 							goPrefabType = GameObjectPrefab::defaultGameObjectPrefabChar; // Set default tiletype because read tiletype ID is unknown
 						}
 						else {
@@ -303,24 +426,82 @@ std::shared_ptr<Level> Level::LoadLevelFromFile(std::string file) {
 
 void Level::DrawLevel(sf::RenderWindow &rw, sf::View view) {
 	rw.setView(view);
-	for (std::shared_ptr<GameObject> go : gameObjects) {
-			rw.draw(go->collider);
-
-		rw.draw(go->sprite);
+	for (auto & layerEntries : gameObjectsDrawLayer) {
+		if (layerEntries.second.size() > 0) {
+			for (std::shared_ptr<GameObject> go : layerEntries.second) {
+				//rw.draw(go->collider);
+				rw.draw(go->sprite);
+			}
+		}
+		
 	}
+
+
 }
 
 void Level::SpawnPlayer(std::shared_ptr<sf::View> playerCamera) {
 	if (playerObject != nullptr)
 		return;
 
-	// TODO SET SPRITE ETC
 	playerObject = std::make_shared<PlayerObject>();
 	playerObject->playerCamera = playerCamera;
-	playerObject->collider = sf::RectangleShape(sf::Vector2f(32, 32));
 	playerObject->prefab = GameObjectPrefab::gameObjectPrefabs["Player"];
 	playerObject->sprite.setTexture(*GameObjectPrefab::gameObjectPrefabTextures["Player"]);
 	playerObject->SetPosition(playerSpawnLocation);
+
+	gameObjects.push_back(playerObject);
+	movableObjects.push_back(playerObject);
+
+	if (gameObjectsDrawLayer.find(3) == gameObjectsDrawLayer.end()) {
+		gameObjectsDrawLayer.insert({ 3,std::vector<std::shared_ptr<GameObject>>(1,playerObject) });
+	}
+	else {
+		gameObjectsDrawLayer[3].push_back(playerObject);
+	}
+
+	this->playerObject = playerObject;
+}
+
+void Level::Update() {
+	/*
+	// Reset Collision Storage of last frame
+	for (std::shared_ptr<MovableObject> go : movableObjects) {
+		go->collisions.clear();
+		go->solidHorCollisionSides = sf::Vector2f(0, 0);
+	}*/
+
+	// Checks if a movable object collided with any object
+	DoCollisionChecks();
+
+	// Calls the Update() Method of each gameobject
+	for (std::shared_ptr<GameObject> go : gameObjects) {
+
+		go->Update();
+		// Check if object is out of bounds
+		if (typeid(*go) == typeid(MovableObject)) {
+			// TODO CHeck if its out of bounds NOT WORKING
+			sf::Vector2f outOfBounds = Level::IsObjectWithinAreaVectorInclusive(go->collider.getGlobalBounds(), sf::FloatRect(0, 0, gridSize.x*tileSize, gridSize.y * tileSize));
+			if (outOfBounds.x != 0 || outOfBounds.y != 0) {
+				std::shared_ptr<MovableObject> mo = std::dynamic_pointer_cast<MovableObject>(go);
+				sf::Vector2f newPos = mo->GetPosition();
+
+				if (outOfBounds.x < 0) {
+					newPos.x = 0; // TODO Ugly
+				}
+				else if (outOfBounds.x > 0) {
+					newPos.x = gridSize.x*tileSize; // TODO Ugly
+				}
+				if (outOfBounds.y < 0) {
+					newPos.y = 0; // TODO Ugly
+				}
+				else if (outOfBounds.y > 0) {
+					newPos.y = gridSize.y * tileSize; // TODO Ugly
+				}
+
+				mo->SetPosition(newPos);
+			}
+		}
+	}
 }
 
 /** SplitStringByDeli
