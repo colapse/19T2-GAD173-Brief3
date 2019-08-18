@@ -158,8 +158,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimatedSprite.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="EnemyObject.h" />
     <ClInclude Include="GameObjectPrefab.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="MovableObject.h" />
@@ -169,8 +171,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="19T2-GAD173-Brief3-Taennler.cpp" />
+    <ClCompile Include="AnimatedSprite.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="EnemyObject.cpp" />
     <ClCompile Include="GameObjectPrefab.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="MovableObject.cpp" />

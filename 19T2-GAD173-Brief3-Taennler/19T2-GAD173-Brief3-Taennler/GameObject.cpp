@@ -4,11 +4,13 @@
 
 GameObject::GameObject()
 {
+	sprite = new sf::Sprite;
 	collider = sf::RectangleShape(sf::Vector2f(32, 32)); // TODO make dynamic tile size
 }
 
 GameObject::GameObject(float width, float height)
 {
+	sprite = new sf::Sprite;
 	collider = sf::RectangleShape(sf::Vector2f(width, height)); 
 }
 
@@ -21,12 +23,26 @@ GameObject::~GameObject()
 void GameObject::SetPosition(sf::Vector2f pos) {
 	this->pos = pos;
 	collider.setPosition(pos);
-	sprite.setPosition(pos);
+	sprite->setPosition(pos);
 }
 
 sf::Vector2f GameObject::GetPosition() {
 	return this->pos;
 }
+/*
+sf::Sprite * GameObject::GetSprite() {
+	if (prefab->isAnimatedSprite)
+		return &animSprite;
+	else
+		return &sprite;
+}
+
+void GameObject::SetSprite(sf::Sprite sprite) {
+	if (prefab->isAnimatedSprite)
+		animSprite = *static_cast<AnimatedSprite*>(&sprite);
+	else
+		this->sprite = sprite;
+}*/
 
 void GameObject::Start() {
 	if(isSolid)
@@ -54,6 +70,8 @@ void GameObject::OnTriggerEnter(std::shared_ptr<Collision> collider) {
 }
 
 void GameObject::Destroy() {
+	prefab = nullptr;
+
 	for (std::function<void()> func : OnRequestDestroy) {
 		func();
 	}

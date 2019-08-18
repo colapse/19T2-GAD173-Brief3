@@ -30,8 +30,9 @@ public:
 	const std::string spriteLoc; // Path + Filename of the image representing the gameobject
 	const bool isStatic = true;
 	const bool isSolid = true;
+	bool isAnimatedSprite = false;
 
-	GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite, bool isStatic, bool isSolid);
+	GameObjectPrefab(std::string pGameObjectId, std::string pName, std::string gameObjectSprite, bool isStatic, bool isSolid, bool isAnimatedSprite);
 	GameObjectPrefab();
 	~GameObjectPrefab();
 };

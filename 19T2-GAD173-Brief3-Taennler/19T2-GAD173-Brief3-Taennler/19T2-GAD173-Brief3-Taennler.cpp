@@ -84,15 +84,18 @@ void InitVars() {
 
 	// Initialize Gameobject Types
 	GameObjectPrefab::gameObjectPrefabs = {
-		{"0",new GameObjectPrefab("0", "Air", texturePath + "BlockSky.PNG", true, false)},
-		{"1",new GameObjectPrefab("1", "Ground", texturePath + "BlockPlatform.PNG", true, true)},
-		{"2",new GameObjectPrefab("2", "Lava", texturePath + "LavaAnimated.GIF", true, false)},
-		{"Coin",new GameObjectPrefab("Coin", "Coin", texturePath + "CoinAnimated.GIF", false, false)},
-		{"Enemy",new GameObjectPrefab("Enemy", "Enemy Spawn", texturePath + "EnemyAlive.PNG", false, true)},
-		{"Player",new GameObjectPrefab("Player", "Player Spawn", texturePath + "Player.PNG", false, true)},
-		{"Exit",new GameObjectPrefab("Exit", "Player Exit", texturePath + "Door.PNG", true, false)}
+		{"0",new GameObjectPrefab("0", "Air", texturePath + "BlockSky.PNG", true, false, false)},
+		{"1",new GameObjectPrefab("1", "Ground", texturePath + "BlockPlatform.PNG", true, true, false)},
+		{"2",new GameObjectPrefab("2", "Lava", texturePath + "LavaAnimatedSheet.PNG", true, false, true)},
+		{"StaticLava",new GameObjectPrefab("StaticLava", "Lava", texturePath + "BlockLava.PNG", true, false, false)},
+		{"Coin",new GameObjectPrefab("Coin", "Coin", texturePath + "CoinAnimatedSheet.PNG", false, false, true)},
+		{"StaticCoin",new GameObjectPrefab("StaticCoin", "Coin", texturePath + "Coin.PNG", false, false, false)},
+		{"Enemy",new GameObjectPrefab("Enemy", "Enemy Spawn", texturePath + "EnemyAlive.PNG", false, true, false)},
+		{"Player",new GameObjectPrefab("Player", "Player Spawn", texturePath + "Player.PNG", false, true, false)},
+		{"EnemyDead",new GameObjectPrefab("EnemyDead", "Enemy Dead", texturePath + "EnemyDead.PNG", false, true, false)},
+		{"Trap",new GameObjectPrefab("Trap", "Trap", texturePath + "Trap.PNG", false, false, false)},
+		{"Exit",new GameObjectPrefab("Exit", "Player Exit", texturePath + "Door.PNG", true, false, false)}
 	};
-
 	LoadTileTextures(32, 32); // Loads the tile/gameobject textures with size 32x32px
 
 	// Initialize Views
@@ -140,10 +143,6 @@ void AddAndSetActiveView(ViewName viewName) {
 void GameLoop() {
 	sf::Clock clock;
 
-	//TEST OBJECTS
-	GameObject go;
-	MovableObject ch;
-
 	std::vector<sf::Keyboard::Key> keyReleases;
 	std::vector<sf::Keyboard::Key> keyPresses;
 	while (window.isOpen())
@@ -171,73 +170,84 @@ void GameLoop() {
 			}
 			case sf::Event::KeyReleased:
 				keyReleases.push_back(event.key.code);
-				/*
-				if (event.key.code == sf::Keyboard::Space) {
-					//inputJump = false;
-				}
-				if (event.key.code == sf::Keyboard::Left) {
-					//inputLeft = false;
-				}
-
-				if (event.key.code == sf::Keyboard::Right) {
-					//inputRight = false;
-				}*/
 				break;
 			case sf::Event::KeyPressed:
-				keyPresses.push_back(event.key.code);/*
-				if (event.key.code == sf::Keyboard::Space) {
-					//inputJump = true;
-				}
-				if (event.key.code == sf::Keyboard::Left) {
-					//inputLeft = true;
-				}
-
-				if (event.key.code == sf::Keyboard::Right) {
-					//inputRight = true;
-				}*/
+				keyPresses.push_back(event.key.code);
 				break;
 			}
 		}
 
 		window.clear();
 
+		// Handle Level Change (Ugly solution)
+		if (Level::instance != nullptr && Level::instance->playerReachedEnd) {
+			std::string filename = "";
 
-		//TESTCODE
-		for (sf::Keyboard::Key key : keyPresses) {
-			go.OnKeyDown(key);
-			ch.OnKeyDown(key);
-		}
-		for (sf::Keyboard::Key key : keyReleases) {
-			go.OnKeyUp(key);
-			ch.OnKeyUp(key);
-		}
-		go.Update();
-		ch.Update();
+			if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level1"+ levelExt) == 0) {
+				filename = exeDir + levelFolder + "\\Level2" + levelExt;
+				std::cout << "Load Level 2" << std::endl;
+			}
+			else if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level2" + levelExt) == 0) {
+				filename = exeDir + levelFolder + "\\Level3" + levelExt;
+				std::cout << "Load Level 3" << std::endl;
+			}
+			else if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level3" + levelExt) == 0) {
+				std::cout << "completed level 3" << std::endl;
+				if (activeLevel != nullptr) {
+					activeLevel->UnloadLevel();
+					activeLevel.reset();
+				}
+				AddAndSetActiveView(ViewName::MainMenu);
+			}
 
-		//std::cout << "Character: " + std::to_string(ch.GetPosition().x) << std::endl;
-		//std::cout << "GameObject: " + std::to_string(go.GetPosition().x) << std::endl;
-		/*
-		if (activeLevel != nullptr) {
-			activeLevel->DrawLevel(window);
-		}*/
+			std::shared_ptr<Level> level = nullptr;
+			if(filename != "")
+				level = Level::LoadLevelFromFile(filename);
+
+			if (Level::instance != nullptr && Level::instance->playerObject != nullptr && level != nullptr) {
+				level->playerObject = Level::instance->playerObject;
+				Level::instance->UnloadLevel();
+				Level::instance.reset();
+			}
+
+			if (level != nullptr) {
+				activeLevel = level;
+				Level::instance = level;
+				AddAndSetActiveView(ViewName::Game);
+				AddAndSetActiveView(ViewName::GameHeader);
+			}
+		}
 		
 
 		if (activeViews.size() > 0) {
 			for (auto const& activeView : activeViews) {
 				window.setView(*views[activeView]);
 
-				if (activeView == ViewName::Game && activeLevel != nullptr) {
-					Level::deltaTime = deltaTime;
+				if (activeView == ViewName::Game && activeLevel != nullptr && activeLevel->playerObject != nullptr) {
+					//Level::deltaTime = deltaTime;
 					activeLevel->Update();
 					for (sf::Keyboard::Key key : keyPresses) {
-						for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
-							movableObject->OnKeyDown(key);
-						}
+						activeLevel->playerObject->OnKeyDown(key);
+						/*
+						if (activeLevel.use_count() > 0 && activeLevel->movableObjects.size() > 0) {
+
+							
+							for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
+								if (movableObject != nullptr && movableObject.use_count() > 0)
+									movableObject->OnKeyDown(key);
+							}
+						}*/
 					}
 					for (sf::Keyboard::Key key : keyReleases) {
-						for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
-							movableObject->OnKeyUp(key);
-						}
+						activeLevel->playerObject->OnKeyUp(key);
+						/*
+						if (activeLevel.use_count() > 0 && activeLevel->movableObjects.size() > 0) {
+
+							for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
+								if (movableObject != nullptr && movableObject.use_count() > 0)
+									movableObject->OnKeyUp(key);
+							}
+						}*/
 					}
 
 					activeLevel->DrawLevel(window, *views[activeView]);
@@ -300,10 +310,23 @@ void HandleViewButtonEvents(ViewName viewName, sf::Event e) {
  * Loads all tile & gameobject textures
 */
 void LoadTileTextures(int tileWidth, int tileHeight) {
+	
 	//tileTypeTextures = std::map<char, sf::Texture>(tileTypes.size());
 	for (auto itr = GameObjectPrefab::gameObjectPrefabs.begin(); itr != GameObjectPrefab::gameObjectPrefabs.end(); ++itr) {
+		float finalTileWidth = tileWidth;
+		float finalTileHeight = tileHeight;
+		if (itr->second->gameObjectId == "2") {
+			finalTileWidth = 160;
+			finalTileHeight = 32;
+		}
+		else if (itr->second->gameObjectId == "Coin") {
+			finalTileWidth = 160;
+			finalTileHeight = 128;
+		}
+
+
 		sf::Texture * texture = new sf::Texture();
-		if (!texture->loadFromFile(itr->second->spriteLoc, sf::IntRect(0, 0, tileWidth, tileHeight)))
+		if (!texture->loadFromFile(itr->second->spriteLoc, sf::IntRect(0, 0, finalTileWidth, finalTileHeight)))
 		{
 		}
 		else {
@@ -365,12 +388,11 @@ void BuildMainMenuView() {
 		//// Create button release lambda func which changes the BG col
 		std::string filename = levelsInFolder[i];
 		auto FnMRelease_BTNLevel = [filename]() {
-			// TODO Load Level
-			std::cout << "[TODO] Load Level " + filename + "!" << std::endl;
 			std::shared_ptr<Level> level = Level::LoadLevelFromFile(exeDir + levelFolder + "\\" + filename + levelExt);
 
 			if (level != nullptr) {
 				activeLevel = level;
+				Level::instance = level;
 				AddAndSetActiveView(ViewName::Game);
 				AddAndSetActiveView(ViewName::GameHeader);
 			}
@@ -404,7 +426,7 @@ void BuildGameHeaderView() {
 
 	//Background
 	std::shared_ptr<sf::RectangleShape> backgroundRect = std::make_shared< sf::RectangleShape>(sf::Vector2f(windowSize.x,windowSize.y*0.1f));
-	backgroundRect->setFillColor(sf::Color::Cyan);
+	backgroundRect->setFillColor(sf::Color::Color(33,33,33,255));
 	viewDrawables[ViewName::GameHeader].push_back(backgroundRect);
 
 	// Button MainMenu
@@ -428,7 +450,10 @@ void BuildGameHeaderView() {
 	btnMainMenu->AddMouseExitFunc(FnMExit_BTNLevel); // Assign func to input
 	//// Create button release lambda func which changes the BG col
 	auto FnMRelease_BTNLevel = []() {
-		activeLevel = nullptr;
+		if (activeLevel != nullptr) {
+			activeLevel->UnloadLevel();
+			activeLevel.reset();
+		}
 		AddAndSetActiveView(ViewName::MainMenu);
 	};
 	btnMainMenu->AddButtonReleasedFunc(FnMRelease_BTNLevel); // Assign func to input
@@ -436,6 +461,46 @@ void BuildGameHeaderView() {
 	viewDrawables[ViewName::GameHeader].push_back(btnMainMenu->GetSpriteObject());
 	viewDrawables[ViewName::GameHeader].push_back(btnMainMenu->GetTextObject());
 	viewButtons[ViewName::GameHeader].push_back(btnMainMenu);
+
+	xOffset += btnMainMenu->GetShapeObject()->getGlobalBounds().width + 30;
+	
+	// Coin Sprite
+	std::shared_ptr<sf::Sprite> coinCountSprite = std::make_shared<sf::Sprite>(*GameObjectPrefab::gameObjectPrefabTextures["StaticCoin"]);
+	coinCountSprite->setPosition(sf::Vector2f(xOffset, yOffset));
+	viewDrawables[ViewName::GameHeader].push_back(coinCountSprite);
+	xOffset += coinCountSprite->getGlobalBounds().width + 5;
+
+	// Coin Count Text
+	std::shared_ptr < sf::Text> txtCoinCount = std::make_shared<sf::Text>("0", generalFont, 28);
+	txtCoinCount->setPosition(sf::Vector2f(xOffset,yOffset));
+	viewDrawables[ViewName::GameHeader].push_back(txtCoinCount);
+	xOffset += txtCoinCount->getGlobalBounds().width + 20;
+
+	auto FnIncreaseCoinCount = [txtCoinCount](int currentCoinCount) {
+		txtCoinCount->setString(std::to_string(currentCoinCount));
+	};
+
+	// Point Sprite
+	std::shared_ptr<sf::Sprite> pointCountSprite = std::make_shared<sf::Sprite>(*GameObjectPrefab::gameObjectPrefabTextures["Trap"]);
+	pointCountSprite->setPosition(sf::Vector2f(xOffset, yOffset));
+	viewDrawables[ViewName::GameHeader].push_back(pointCountSprite);
+	xOffset += pointCountSprite->getGlobalBounds().width + 5;
+
+	// Point Count Text
+	std::shared_ptr < sf::Text> txtPointCount = std::make_shared<sf::Text>("0", generalFont, 28);
+	txtPointCount->setPosition(sf::Vector2f(xOffset, yOffset));
+	viewDrawables[ViewName::GameHeader].push_back(txtPointCount);
+	xOffset += txtPointCount->getGlobalBounds().width + 20;
+	auto FnIncreasePointCount = [txtPointCount](int currentPointCount) {
+		txtPointCount->setString(std::to_string(currentPointCount));
+	};
+
+	if (activeLevel != nullptr && activeLevel->playerObject != nullptr) {
+		activeLevel->playerObject->OnCoinAmountChange.push_back(FnIncreaseCoinCount);
+		activeLevel->playerObject->OnScoreChange.push_back(FnIncreasePointCount);
+		txtCoinCount->setString(std::to_string(activeLevel->playerObject->GetCoinCount()));
+		txtPointCount->setString(std::to_string(activeLevel->playerObject->GetScore()));
+	}
 }
 
 /** LoadLevelsFromDirectory

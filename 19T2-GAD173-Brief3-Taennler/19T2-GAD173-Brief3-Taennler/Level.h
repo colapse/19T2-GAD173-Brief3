@@ -14,8 +14,12 @@
 #ifndef PlayerObject
 #include "PlayerObject.h"
 #endif // !PlayerObject
+#ifndef EnemyObject
+#include "EnemyObject.h"
+#endif // !EnemyObject
 class MovableObject;
 class PlayerObject;
+class EnemyObject;
 
 class Level
 {
@@ -31,8 +35,12 @@ class Level
 public:
 	static float deltaTime;
 	static const float defaultTileSize; // The default size of a tile if not specified differently
+	static std::shared_ptr<Level> instance;
 	sf::Vector2i gridSize; // Defines the size of the grid (Amount of Tiles in x/y direction)
 	float tileSize; // The size of the tiles
+	bool playerReachedEnd = false;
+
+	sf::Clock clock;
 
 	std::string levelName; // Name of the level
 	std::string levelFile; // path & filename of level on the filesystem
@@ -79,6 +87,10 @@ public:
 	void Update();
 
 	void RemoveGameObject(std::shared_ptr<GameObject> gameObject);
-	void RemoveMovableObject(std::shared_ptr<MovableObject> gameObject);
+	//void RemoveMovableObject(std::shared_ptr<MovableObject> gameObject);
+
+	void AddGameObject(std::shared_ptr<GameObject> gameObject);
+
+	void UnloadLevel();
 };
 

@@ -1,18 +1,12 @@
-﻿  Level.cpp
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(15): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(16): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(26): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(31): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
+﻿  19T2-GAD173-Brief3-Taennler.cpp
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(17): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(18): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(102): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
-              T=int
+              T=float
           ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(33): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
-          with
-          [
-              T=int
-          ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(102): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(103): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=int
@@ -21,6 +15,29 @@ c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler
           [
               T=float
           ]
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(362): warning C4129: '(': unrecognized character escape sequence
-c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(143): warning C4715: 'Level::GetGameObjectsAtCoord': not all control paths return a value
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(106): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(316): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(317): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(329): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler.cpp(428): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
   19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\lucat\Documents\gitlocal\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Debug\19T2-GAD173-Brief3-Taennler.exe

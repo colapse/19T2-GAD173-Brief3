@@ -11,19 +11,23 @@
 class MovableObject : public GameObject
 {
 public:
-	float gravity = 400;
-	float groundFriction = 0.009;
-	float airFriction = 0.0001;
+	bool blockMovement = false;
 
-	float groundSpeed = 20;
+	float gravity = 400;
+	float groundFriction = 0.019;
+	float airFriction = 0.001;
+
+	float groundSpeed = 50;
 	float airSpeed = 10;
 
-	float jumpForce = -10;
-	float maxJumpForce = -300;
+	float jumpForce = -100;
+	float maxJumpForce = -195;
 	float accumulatedJumpForce = 0;
 	float jumpForceMultiplier = 1;
 
 	sf::Vector2f objectMovement;
+	sf::Vector2f forceAddition;
+	sf::Vector2f lookDirection;
 
 	bool inputJump = false;
 	bool inputLeft = false;
@@ -42,6 +46,7 @@ public:
 	~MovableObject();
 
 	void Update() override;
+	void Destroy() override;
 	void OnKeyUp(sf::Keyboard::Key key) override;
 	void OnKeyDown(sf::Keyboard::Key key) override;
 	void OnCollisionEnter(std::shared_ptr<Collision> collider) override;
@@ -50,5 +55,7 @@ public:
 	virtual void CalculateMovement();
 	virtual void Move(sf::Vector2f movementVector);
 	virtual void DoCollisionCheck();
+	virtual void AddForce(sf::Vector2f force);
+	virtual sf::Vector2f CalculateFinalMovementVector(sf::Vector2f movementVector);
 };
 
