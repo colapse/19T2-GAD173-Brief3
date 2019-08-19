@@ -18,6 +18,7 @@ AnimatedSprite::~AnimatedSprite()
 {
 }
 
+/** Update: Swaps to the next tile(/frame) of the animated sprite and sets cooldowns. */
 void AnimatedSprite::Update() {
 	if (getTexture() == nullptr || Level::instance == nullptr)
 		return;

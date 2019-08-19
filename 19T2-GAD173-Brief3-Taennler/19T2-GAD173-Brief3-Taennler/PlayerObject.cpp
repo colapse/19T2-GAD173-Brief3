@@ -37,8 +37,10 @@ PlayerObject::~PlayerObject()
 void PlayerObject::SetPosition(sf::Vector2f pos) {
 	this->pos = pos;
 	collider.setPosition(pos);
-	sprite->setPosition(pos);
-	playerCamera->setCenter(pos);
+	if(sprite != nullptr)
+		sprite->setPosition(pos);
+	if(playerCamera != nullptr)
+		playerCamera->setCenter(pos);
 }
 
 void PlayerObject::Start() {
@@ -51,8 +53,7 @@ void PlayerObject::Update() {
 	
 	CalculateMovement();
 
-	if (!blockMovement)
-		Move(objectMovement * Level::deltaTime);
+	Move(objectMovement * Level::deltaTime);
 
 	//Cooldown
 	if (jumpCooldown > 0) {
@@ -88,7 +89,8 @@ void PlayerObject::OnKeyUp(sf::Keyboard::Key key) {
 		inputJump = false;
 		break;
 	case sf::Keyboard::Key::Enter:
-		ThrowTrap();
+		if(isAlive)
+			ThrowTrap();
 		break;
 	}
 }

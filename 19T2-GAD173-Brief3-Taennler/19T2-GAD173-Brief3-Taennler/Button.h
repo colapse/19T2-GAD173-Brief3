@@ -6,6 +6,7 @@
 #ifndef functional
 #include <functional>
 #endif // !functional
+
 /**
  * Implementation of Button class
  *

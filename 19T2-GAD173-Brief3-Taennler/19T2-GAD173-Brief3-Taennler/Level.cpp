@@ -59,14 +59,6 @@ void Level::RemoveGameObject(std::shared_ptr<GameObject> gameObject) {
 	if(gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end())
 		gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
 }
-/*
-void Level::RemoveMovableObject(std::shared_ptr<MovableObject> gameObject) {
-	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), gameObject), gameObjects.end());
-	movableObjects.erase(std::remove(movableObjects.begin(), movableObjects.end(), gameObject), movableObjects.end());
-	if (gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end())
-		gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
-	
-}*/
 
 void Level::InitializeGameObjectGrid() {
 	gameObjectGrid = std::vector<std::vector<std::vector<std::shared_ptr<GameObject>>>>(gridSize.y, std::vector<std::vector<std::shared_ptr<GameObject>>>(gridSize.x, std::vector<std::shared_ptr<GameObject>>(0,nullptr)));
@@ -645,16 +637,24 @@ void Level::AddGameObject(std::shared_ptr<GameObject> gameObject) {
 void Level::UnloadLevel() {
 	if (gameObjects.size() > 0) {
 		for (std::shared_ptr<GameObject> go : gameObjects) {
-			if(go != nullptr)
+			if (go != nullptr) {
+				go->Destroy();
 				go.reset();
+				go = nullptr;
+			}
 		}
+		gameObjects.clear();
 	}
 
 	if (movableObjects.size() > 0) {
 		for (std::shared_ptr<MovableObject> go : movableObjects) {
-			if (go != nullptr)
+			if (go != nullptr) {
+				go->Destroy();
 				go.reset();
+				go = nullptr;
+			}
 		}
+		movableObjects.clear();
 	}
 
 	if (&gameObjectsDrawLayer != nullptr && gameObjectsDrawLayer.size() > 0) {
@@ -662,14 +662,17 @@ void Level::UnloadLevel() {
 		{
 			if (entry.second.size() > 0) {
 				for (std::shared_ptr<GameObject> go : entry.second) {
-					if (go != nullptr)
+					if (go != nullptr) {
+						go->Destroy();
 						go.reset();
+						go = nullptr;
+					}
 				}
 			}
 		}
+		gameObjectsDrawLayer.clear();
 	}
-
-	playerObject = nullptr;
+	playerObject.reset();
 
 	if (instance != nullptr)
 		instance.reset();

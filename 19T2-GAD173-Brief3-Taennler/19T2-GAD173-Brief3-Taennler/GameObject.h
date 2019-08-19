@@ -15,29 +15,33 @@
 #include <functional>
 #endif // !functional
 class Collision;
+
+/**
+ * Implementation of GameObject class
+ *
+ * A gameobject represents any "active" object in the game. It's Update() Method will be called every frame.
+*/
 class GameObject
 {
 protected:
-	sf::Vector2f pos;
+	sf::Vector2f pos; // The current position of the gameobject
 public:
-	std::string tag = "";
-	std::vector<std::function<void()>> OnRequestDestroy;
-	sf::RectangleShape collider;
-	sf::Sprite * sprite;
-	bool isSolid = true;
+	std::string tag = ""; // A tag can be used to identify a gameobject
+	std::vector<std::function<void()>> OnRequestDestroy; // Stores functions that will be called when the gameobject requests to be destroyed/removed
+	sf::RectangleShape collider; // The rectangular collider of the object
+	sf::Sprite * sprite; // Pointer to the sprite representing this gameobject
+	bool isSolid = true; // State defines if the gameobject is solid or not (If solid, it can collide with objects; If not, it can be used as a trigger)
 
-	GameObjectPrefab * prefab;
+	GameObjectPrefab * prefab; // Reference to the prefab type (Ugly solution)
 
 	GameObject(float width, float height);
 	GameObject();
 	~GameObject();
 
-	int renderLayer = 0;
+	int renderLayer = 0; // The z-layer in which it will be drawn
 
 	virtual void SetPosition(sf::Vector2f pos);
 	sf::Vector2f GetPosition();
-	//sf::Sprite * GetSprite();
-	//void SetSprite(sf::Sprite sprite);
 
 	virtual void Start();
 	virtual void Update();
