@@ -27,4 +27,13 @@ GameObjectPrefab::GameObjectPrefab() : gameObjectId(""), name(" "), spriteLoc(" 
 
 GameObjectPrefab::~GameObjectPrefab()
 {
+	if (gameObjectPrefabs.find(gameObjectId) != gameObjectPrefabs.end()) {
+		gameObjectPrefabs[gameObjectId] = nullptr;
+	}
+	if (gameObjectPrefabTextures.find(gameObjectId) != gameObjectPrefabTextures.end()) {
+		if (gameObjectPrefabTextures[gameObjectId] != nullptr)
+			delete gameObjectPrefabTextures[gameObjectId];
+		gameObjectPrefabTextures[gameObjectId] = nullptr;
+	}
+	
 }

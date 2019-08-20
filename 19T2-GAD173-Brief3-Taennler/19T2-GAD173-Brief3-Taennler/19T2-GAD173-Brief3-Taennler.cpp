@@ -99,21 +99,24 @@ void InitVars() {
 	LoadTileTextures(32, 32); // Loads the tile/gameobject textures with size 32x32px
 
 	// Initialize Views
-	views.insert({ ViewName::MainMenu,std::make_shared<sf::View>(sf::Vector2f(windowSize.x / 2, windowSize.y / 2), sf::Vector2f(windowSize)) });
-	views.insert({ ViewName::GameHeader,std::make_shared<sf::View>(sf::FloatRect(0, 0, windowSize.x, windowSize.y*0.1f)) });
+	views.insert({ ViewName::MainMenu,std::make_shared<sf::View>(sf::Vector2f((float)windowSize.x / 2, (float)windowSize.y / 2), sf::Vector2f(windowSize)) });
+	views.insert({ ViewName::GameHeader,std::make_shared<sf::View>(sf::FloatRect(0, 0, (float)windowSize.x,(float)windowSize.y*0.1f)) });
 	views[ViewName::GameHeader]->setViewport(sf::FloatRect(0, 0, 1, 0.1f));
 	//views[ViewName::GameHeader]->zoom(1);
-	views.insert({ ViewName::Game,std::make_shared<sf::View>(sf::FloatRect(0, 0, windowSize.x, windowSize.y*0.9f)) });
+	views.insert({ ViewName::Game,std::make_shared<sf::View>(sf::FloatRect(0, 0, (float)windowSize.x, (float)windowSize.y*0.9f)) });
 	views[ViewName::Game]->setViewport(sf::FloatRect(0, 0.1f, 1, 0.9f));
 	//views[ViewName::Game]->zoom(3);
 
 }
 
 void AddAndSetActiveView(ViewName viewName) {
-
 	switch (viewName) {
 	case ViewName::MainMenu:
 	{
+		viewButtons[ViewName::Game].clear();
+		viewDrawables[ViewName::Game].clear();
+		viewButtons[ViewName::GameHeader].clear();
+		viewDrawables[ViewName::GameHeader].clear();
 		activeViews.clear();
 		BuildMainMenuView();
 		break;
@@ -122,16 +125,17 @@ void AddAndSetActiveView(ViewName viewName) {
 		if (std::find(activeViews.begin(), activeViews.end(), ViewName::MainMenu) != activeViews.end()) {
 			activeViews.erase(std::remove(activeViews.begin(), activeViews.end(), ViewName::MainMenu), activeViews.end());
 		}
+		viewButtons[ViewName::MainMenu].clear();
+		viewDrawables[ViewName::MainMenu].clear();
 		BuildGameView();
-		if (activeLevel != nullptr) {
-			activeLevel->SpawnPlayer(views[ViewName::Game]);
-		}
 		break;
 	}
 	case ViewName::GameHeader: {
 		if (std::find(activeViews.begin(), activeViews.end(), ViewName::MainMenu) != activeViews.end()) {
 			activeViews.erase(std::remove(activeViews.begin(), activeViews.end(), ViewName::MainMenu), activeViews.end());
 		}
+		viewButtons[ViewName::MainMenu].clear();
+		viewDrawables[ViewName::MainMenu].clear();
 		BuildGameHeaderView();
 		break;
 	}
@@ -185,14 +189,11 @@ void GameLoop() {
 
 			if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level1"+ levelExt) == 0) {
 				filename = exeDir + levelFolder + "\\Level2" + levelExt;
-				std::cout << "Load Level 2" << std::endl;
 			}
 			else if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level2" + levelExt) == 0) {
 				filename = exeDir + levelFolder + "\\Level3" + levelExt;
-				std::cout << "Load Level 3" << std::endl;
 			}
 			else if (Level::instance->levelFile.compare(exeDir + levelFolder + "\\Level3" + levelExt) == 0) {
-				std::cout << "completed level 3" << std::endl;
 				if (activeLevel != nullptr) {
 					activeLevel->UnloadLevel();
 					activeLevel.reset();
@@ -205,12 +206,15 @@ void GameLoop() {
 				level = Level::LoadLevelFromFile(filename);
 
 			if (Level::instance != nullptr && Level::instance->playerObject != nullptr && level != nullptr) {
+				std::cout << "Exchange player obj and unload old lvl" << std::endl;
 				level->playerObject = Level::instance->playerObject;
+				level->playerObject->blockMovement = false;
 				Level::instance->UnloadLevel();
 				Level::instance.reset();
 			}
 
 			if (level != nullptr) {
+				level->SpawnPlayer(views[ViewName::Game]);
 				activeLevel = level;
 				Level::instance = level;
 				AddAndSetActiveView(ViewName::Game);
@@ -228,26 +232,9 @@ void GameLoop() {
 					activeLevel->Update();
 					for (sf::Keyboard::Key key : keyPresses) {
 						activeLevel->playerObject->OnKeyDown(key);
-						/*
-						if (activeLevel.use_count() > 0 && activeLevel->movableObjects.size() > 0) {
-
-							
-							for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
-								if (movableObject != nullptr && movableObject.use_count() > 0)
-									movableObject->OnKeyDown(key);
-							}
-						}*/
 					}
 					for (sf::Keyboard::Key key : keyReleases) {
 						activeLevel->playerObject->OnKeyUp(key);
-						/*
-						if (activeLevel.use_count() > 0 && activeLevel->movableObjects.size() > 0) {
-
-							for (std::shared_ptr<MovableObject> movableObject : activeLevel->movableObjects) {
-								if (movableObject != nullptr && movableObject.use_count() > 0)
-									movableObject->OnKeyUp(key);
-							}
-						}*/
 					}
 
 					activeLevel->DrawLevel(window, *views[activeView]);
@@ -282,28 +269,34 @@ void HandleViewButtonEvents(ViewName viewName, sf::Event e) {
 	window.setView(*views[viewName]);
 
 	// Handle events for Buttons [TODO: Super inperformant!]
-	for (std::shared_ptr<Button> b : viewButtons[viewName]) {
-		switch (e.type) {
-		case sf::Event::MouseMoved:
-			if (b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
-				b->SetMouseEnter();
+	if (viewButtons[viewName].size() > 0) {
+		for (std::shared_ptr<Button> b : viewButtons[viewName]) {
+			if (b == nullptr)
+				continue;
+
+			switch (e.type) {
+			case sf::Event::MouseMoved:
+				if (b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
+					b->SetMouseEnter();
+				}
+				else if (b->isActive) {
+					b->SetMouseExit();
+				}
+				break;
+			case sf::Event::MouseButtonPressed:
+				if ((e.mouseButton.button == sf::Mouse::Button::Left || e.mouseButton.button == sf::Mouse::Button::Right) && b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
+					b->SetButtonPressed();
+				}
+				break;
+			case sf::Event::MouseButtonReleased:
+				if ((e.mouseButton.button == sf::Mouse::Button::Left || e.mouseButton.button == sf::Mouse::Button::Right) && b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
+					b->SetButtonReleased();
+				}
+				break;
 			}
-			else if (b->isActive) {
-				b->SetMouseExit();
-			}
-			break;
-		case sf::Event::MouseButtonPressed:
-			if ((e.mouseButton.button == sf::Mouse::Button::Left || e.mouseButton.button == sf::Mouse::Button::Right) && b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
-				b->SetButtonPressed();
-			}
-			break;
-		case sf::Event::MouseButtonReleased:
-			if ((e.mouseButton.button == sf::Mouse::Button::Left || e.mouseButton.button == sf::Mouse::Button::Right) && b->isActive && b->GetGlobalBounds().contains(window.mapPixelToCoords(mousePosInt))) {
-				b->SetButtonReleased();
-			}
-			break;
 		}
 	}
+	
 }
 
 /** LoadTileTextures
@@ -313,8 +306,8 @@ void LoadTileTextures(int tileWidth, int tileHeight) {
 	
 	//tileTypeTextures = std::map<char, sf::Texture>(tileTypes.size());
 	for (auto itr = GameObjectPrefab::gameObjectPrefabs.begin(); itr != GameObjectPrefab::gameObjectPrefabs.end(); ++itr) {
-		float finalTileWidth = tileWidth;
-		float finalTileHeight = tileHeight;
+		int finalTileWidth = tileWidth;
+		int finalTileHeight = tileHeight;
 		if (itr->second->gameObjectId == "2") {
 			finalTileWidth = 160;
 			finalTileHeight = 32;
@@ -342,6 +335,10 @@ void BuildMainMenuView() {
 	// Clear out drawables
 	if (viewDrawables.find(ViewName::MainMenu) != viewDrawables.end()) {
 		viewDrawables[ViewName::MainMenu].clear();
+	}
+	//Clear out buttons
+	if (viewButtons.find(ViewName::MainMenu) != viewButtons.end()) {
+		viewButtons[ViewName::MainMenu].clear();
 	}
 
 	float yOffset = 10;
@@ -391,6 +388,7 @@ void BuildMainMenuView() {
 			std::shared_ptr<Level> level = Level::LoadLevelFromFile(exeDir + levelFolder + "\\" + filename + levelExt);
 
 			if (level != nullptr) {
+				level->SpawnPlayer(views[ViewName::Game]);
 				activeLevel = level;
 				Level::instance = level;
 				AddAndSetActiveView(ViewName::Game);
@@ -421,11 +419,20 @@ void BuildGameView() {
  * Builds the GameView / Active Level.
 */
 void BuildGameHeaderView() {
+	// Clear out drawables
+	if (viewDrawables.find(ViewName::GameHeader) != viewDrawables.end()) {
+		viewDrawables[ViewName::GameHeader].clear();
+	}
+	//Clear out buttons
+	if (viewButtons.find(ViewName::GameHeader) != viewButtons.end()) {
+		viewButtons[ViewName::GameHeader].clear();
+	}
+
 	float yOffset = 10;
 	float xOffset = 10;
 
 	//Background
-	std::shared_ptr<sf::RectangleShape> backgroundRect = std::make_shared< sf::RectangleShape>(sf::Vector2f(windowSize.x,windowSize.y*0.1f));
+	std::shared_ptr<sf::RectangleShape> backgroundRect = std::make_shared< sf::RectangleShape>(sf::Vector2f((float)windowSize.x, (float)windowSize.y*0.1f));
 	backgroundRect->setFillColor(sf::Color::Color(33,33,33,255));
 	viewDrawables[ViewName::GameHeader].push_back(backgroundRect);
 

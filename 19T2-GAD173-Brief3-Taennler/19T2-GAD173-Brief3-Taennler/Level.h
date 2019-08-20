@@ -35,26 +35,22 @@ class Level
 public:
 	static float deltaTime;
 	static const float defaultTileSize; // The default size of a tile if not specified differently
-	static std::shared_ptr<Level> instance;
+	static std::shared_ptr<Level> instance; // Instance of currently active level
 	sf::Vector2i gridSize; // Defines the size of the grid (Amount of Tiles in x/y direction)
 	float tileSize; // The size of the tiles
-	bool playerReachedEnd = false;
+	bool playerReachedEnd = false; // States whether the player has reached the exit
 
 	sf::Clock clock;
 
 	std::string levelName; // Name of the level
 	std::string levelFile; // path & filename of level on the filesystem
 
+	std::vector<std::shared_ptr<GameObject>> gameObjects; // Stores references to all gameobjects contained in the level
+	std::vector<std::shared_ptr<MovableObject>> movableObjects; // Stores references to all movableobjects (Also stored in gameObjects!)
+	std::map<int, std::vector<std::shared_ptr<GameObject>>, std::less<int>> gameObjectsDrawLayer; // int = render layer; Stores all Gameobjects that need to be drawn in their specific drawlayer
 
-	// TODO needed? std::string saveFile; // path & filename of the level save file on the filesystem
-
-
-	std::vector<std::shared_ptr<GameObject>> gameObjects;
-	std::vector<std::shared_ptr<MovableObject>> movableObjects;
-	std::map<int, std::vector<std::shared_ptr<GameObject>>, std::less<int>> gameObjectsDrawLayer; // int = render layer
-
-	std::shared_ptr<PlayerObject> playerObject = nullptr;
-	sf::Vector2f playerSpawnLocation = sf::Vector2f(0,0);
+	std::shared_ptr<PlayerObject> playerObject = nullptr; // Reference to the player object
+	sf::Vector2f playerSpawnLocation = sf::Vector2f(0,0); // Spawn location of the player
 
 	Level(std::vector<std::vector<std::vector<std::string>>> pRawGrid, float pTileSize, std::string pLevelName);
 
@@ -65,8 +61,6 @@ public:
 	 * @return std::vector<std::shared_ptr<GameObject>> List with pointers to gameobjects at given coords
 	*/
 	std::vector<std::shared_ptr<GameObject>> GetGameObjectsAtCoord(unsigned int x, unsigned int y);
-
-	void AddGameObjectAtCoord(unsigned int x, unsigned int y, GameObjectPrefab prefab);
 
 	void DoCollisionChecks();
 
@@ -87,7 +81,6 @@ public:
 	void Update();
 
 	void RemoveGameObject(std::shared_ptr<GameObject> gameObject);
-	//void RemoveMovableObject(std::shared_ptr<MovableObject> gameObject);
 
 	void AddGameObject(std::shared_ptr<GameObject> gameObject);
 

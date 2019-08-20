@@ -1,20 +1,3 @@
 ﻿  Level.cpp
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(22): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\movableobject.h(23): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(29): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(35): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(36): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
-          with
-          [
-              T=int
-          ]
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(38): warning C4267: '=': conversion from 'size_t' to 'T', possible loss of data
-          with
-          [
-              T=int
-          ]
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(44): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(49): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(392): warning C4129: '(': unrecognized character escape sequence
-c:\users\ltnnler\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(165): warning C4715: 'Level::GetGameObjectsAtCoord': not all control paths return a value
-  19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\ltnnler\Documents\gitlocal\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Debug\19T2-GAD173-Brief3-Taennler.exe
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(416): warning C4129: '(': unrecognized character escape sequence
+  19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\lucat\Documents\gitlocal\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Debug\19T2-GAD173-Brief3-Taennler.exe

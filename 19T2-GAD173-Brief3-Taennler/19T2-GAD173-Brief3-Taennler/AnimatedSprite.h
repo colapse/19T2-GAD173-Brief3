@@ -13,14 +13,14 @@
 class AnimatedSprite :
 	public sf::Sprite
 {
-	float frameChangeCooldown = 0; // Internal cooldown countdown until the next frame will be displayed.
+	double frameChangeCooldown = 0; // Internal cooldown countdown until the next frame will be displayed.
 	int currentFrameX = 0; // The current horizontal frame position
 	int currentFrameY = 0; // The current vertical frame position
 public:
 	AnimatedSprite();
 	~AnimatedSprite();
 
-	int fps = 10; // Setting: How many frames per second
+	int fps = 1; // Setting: How many frames per second
 	float tileSize = 0; // Setting: Size of each tile within the spritesheet
 	int frameCountX = 1; // Setting: The amount of frames horizontally
 	int frameCountY = 1; // Setting: The amount of frames vertically

@@ -18,6 +18,11 @@ GameObject::GameObject(float width, float height)
 GameObject::~GameObject()
 {
 	Destroy();
+	prefab = nullptr;
+	if (sprite != nullptr) {
+		delete sprite;
+		sprite = nullptr;
+	}
 }
 
 /** Method SetPosition: Updates the position of the gameobject. */
@@ -53,8 +58,7 @@ void GameObject::OnTriggerEnter(std::shared_ptr<Collision> collider) {}
 
 /** Method Destroy: Unloads some stuff from the object and informs listeners that it wants to be destroyed. */
 void GameObject::Destroy() {
-	prefab = nullptr;
-	sprite = nullptr;
+	
 	// Call listener functions
 	for (std::function<void()> func : OnRequestDestroy) {
 		func();

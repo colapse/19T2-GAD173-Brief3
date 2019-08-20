@@ -34,7 +34,7 @@ void AnimatedSprite::Update() {
 		setTextureRect(newRect);
 
 
-		frameChangeCooldown = 1/fps;
+		frameChangeCooldown = 1.0/fps;
 	}
 	else {
 		frameChangeCooldown -= Level::deltaTime;

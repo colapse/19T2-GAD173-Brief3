@@ -17,14 +17,23 @@ Button::Button()
 Button::~Button()
 {
 	if (_txtText != nullptr) {
+		_txtText.reset();
 		_txtText = nullptr;
 	}
 	if (_shape != nullptr) {
+		_shape.reset();
 		_shape = nullptr;
 	}
 	if (_sprite != nullptr) {
+		_sprite.reset();
 		_sprite = nullptr;
 	}
+
+	btnDownFuncs.clear();
+	btnPressedFuncs.clear();
+	btnReleasedFuncs.clear();
+	mouseEnterFuncs.clear();
+	mouseExitFuncs.clear();
 }
 
 /** OnButtonDown: Executes functions when button is pressed down. (Happens only once until button is released again) */

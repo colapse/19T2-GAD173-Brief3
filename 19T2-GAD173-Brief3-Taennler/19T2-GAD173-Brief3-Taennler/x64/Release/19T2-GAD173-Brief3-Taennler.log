@@ -1,0 +1,9 @@
+﻿  Level.cpp
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(68): warning C4101: 'e': unreferenced local variable
+c:\users\lucat\documents\gitlocal\19t2-gad173-brief3\19t2-gad173-brief3-taennler\19t2-gad173-brief3-taennler\level.cpp(422): warning C4129: '(': unrecognized character escape sequence
+  Generating code
+  6 of 4075 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  19T2-GAD173-Brief3-Taennler.vcxproj -> C:\Users\lucat\Documents\gitlocal\19T2-GAD173-Brief3\19T2-GAD173-Brief3-Taennler\x64\Release\19T2-GAD173-Brief3-Taennler.exe

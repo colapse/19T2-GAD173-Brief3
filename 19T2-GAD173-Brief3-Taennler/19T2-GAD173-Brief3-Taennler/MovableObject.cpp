@@ -5,10 +5,6 @@
 #include "Level.h"
 #endif // !Level
 
-#ifndef _IOSTREAM_
-#include <iostream>
-#endif // !_IOSTREAM_
-
 #ifndef _CMATH_
 #include <math.h>
 #endif // !_CMATH_
@@ -33,6 +29,16 @@ MovableObject::MovableObject()
 
 MovableObject::~MovableObject()
 {
+	Destroy();
+	prefab = nullptr;
+	sprite = nullptr;
+	// Delete all collisions
+	if (collisions.size() > 0) {
+		for (std::shared_ptr<Collision> col : collisions) {
+			col.reset();
+		}
+	}
+	collisions.clear();
 }
 
 /** Method Update: This function is called every frame.*/
@@ -154,18 +160,16 @@ void MovableObject::CalculateMovement() {
 
 	// == Apply Input Jump
 	if (!blockMovement && inputJump && jumpCooldown <= 0 && accumulatedJumpForce >= maxJumpForce) {
-
-
 		objectMovement.y += jumpForce * jumpForceMultiplier;
 		accumulatedJumpForce += jumpForce * jumpForceMultiplier;
-		jumpForceMultiplier += 0.5;
-		jumpCooldown = 0.001;
+		jumpForceMultiplier -= jumpForceMultiplier > 0.5f?0.5f:0;
+		//jumpCooldown = 0.01f;
 	}
 
 	// Reset Jump
-	if ((!inputJump && accumulatedJumpForce != 0 && grounded)) {
+	if (accumulatedJumpForce != 0 && grounded) {//!inputJump && 
 		accumulatedJumpForce = 0;
-		jumpForceMultiplier = 1;
+		jumpForceMultiplier = 3;
 	}
 
 	// === Apply Force Addition
@@ -203,15 +207,7 @@ void MovableObject::AddForce(sf::Vector2f force) {
 
 /** Method Destroy: Unloads some stuff from the object and informs listeners that it wants to be destroyed. */
 void MovableObject::Destroy() {
-	prefab = nullptr;
-	sprite = nullptr;
-	// Delete all collisions
-	if (collisions.size() > 0) {
-		for (std::shared_ptr<Collision> col : collisions) {
-			col.reset();
-		}
-	}
-	collisions.clear();
+	
 
 	// Call listener functions
 	for (std::function<void()> func : OnRequestDestroy) {
@@ -243,7 +239,7 @@ sf::Vector2f MovableObject::CalculateFinalMovementVector(sf::Vector2f movementVe
 				// Calculate the distance between the gameobject and the buttom object
 				float distanceToCollider = (go->collider.getGlobalBounds().top - objPosBottom);
 				// Manipulates movement if the given vertical movement amount would get the object within the collider below
-				movementVector.y = (distanceToCollider < std::abs(movementVector.y)) ? distanceToCollider+.5 : movementVector.y;
+				movementVector.y = (distanceToCollider < std::abs(movementVector.y)) ? distanceToCollider+.5f : movementVector.y;
 			}
 		}
 	}
@@ -253,7 +249,7 @@ sf::Vector2f MovableObject::CalculateFinalMovementVector(sf::Vector2f movementVe
 		for (std::shared_ptr<GameObject> go : goAbove) {
 			if (go->isSolid) {
 				float distanceToCollider = (collider.getGlobalBounds().top - (go->collider.getGlobalBounds().top+ go->collider.getGlobalBounds().height));
-				movementVector.y = (distanceToCollider < std::abs(movementVector.y)) ? -distanceToCollider - .5 : movementVector.y;
+				movementVector.y = (distanceToCollider < std::abs(movementVector.y)) ? -distanceToCollider - .5f : movementVector.y;
 			}
 		}
 	}
@@ -263,7 +259,7 @@ sf::Vector2f MovableObject::CalculateFinalMovementVector(sf::Vector2f movementVe
 		for (std::shared_ptr<GameObject> go : goLeft) {
 			if (go->isSolid) {
 				float distanceToCollider = (collider.getGlobalBounds().left-(go->collider.getGlobalBounds().left + go->collider.getGlobalBounds().width));
-				movementVector.x = (distanceToCollider < std::abs(movementVector.x)) ? -distanceToCollider - .5 : movementVector.x;
+				movementVector.x = (distanceToCollider < std::abs(movementVector.x)) ? -distanceToCollider - .5f : movementVector.x;
 			}
 		}
 	}
@@ -273,7 +269,7 @@ sf::Vector2f MovableObject::CalculateFinalMovementVector(sf::Vector2f movementVe
 		for (std::shared_ptr<GameObject> go : goRight) {
 			if (go->isSolid) {
 				float distanceToCollider = ((go->collider.getGlobalBounds().left)-objPosRight);
-				movementVector.x = (distanceToCollider < std::abs(movementVector.x)) ? distanceToCollider + .5 : movementVector.x;
+				movementVector.x = (distanceToCollider < std::abs(movementVector.x)) ? distanceToCollider + .5f : movementVector.x;
 			}
 		}
 	}

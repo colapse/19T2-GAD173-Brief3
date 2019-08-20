@@ -30,10 +30,10 @@ EnemyObject::~EnemyObject()
 /** Method Start: This function is called right after the gameobject is created. */
 void EnemyObject::Start() {
 	// Set enemy specific stats
-	jumpForce = -25;
-	maxJumpForce = -300;
+	jumpForce = -20;
+	maxJumpForce = -180;
 	groundSpeed = 30;
-	airSpeed = 50;
+	airSpeed = 60;
 	collider.setFillColor(sf::Color::Green); // For Debug
 	inputLeft = true; // On spawn, the first movement direction of the enemy is left.
 }
@@ -205,8 +205,10 @@ void EnemyObject::AIInput() {
 				}
 
 				// Invert movement direction
-				inputLeft = false;
-				inputRight = true;
+				if (grounded) {
+					inputLeft = false;
+					inputRight = true;
+				}
 
 				// Exit function; We don't want any further input changes.
 				return;
@@ -231,7 +233,7 @@ void EnemyObject::AIInput() {
 	if (!saveLeft && !saveLeftBottomY2 && objectMovement.x < 0 && goLeftBottomX1Y2.size() > 0) {
 		for (std::shared_ptr<GameObject> go : goLeftBottomX1Y2) {
 			// Check if left,belowx2 is air, move right
-			if (go->tag == "0") {
+			if (go->tag == "0" && grounded) {
 				inputLeft = false;
 				inputRight = true;
 				return;
@@ -243,7 +245,7 @@ void EnemyObject::AIInput() {
 	if (objectMovement.x < 0 && goLeft.size() > 0) {
 		for (std::shared_ptr<GameObject> go : goLeft) {
 			// Check if block is lava on the left, move right
-			if (go->tag == "2") {
+			if (go->tag == "2" && grounded) {
 				inputLeft = false;
 				inputRight = true;
 				return;
@@ -312,8 +314,11 @@ void EnemyObject::AIInput() {
 					if (breakLoop)
 						break;
 				}
-				inputLeft = true;
-				inputRight = false;
+
+				if (grounded) {
+					inputLeft = true;
+					inputRight = false;
+				}
 				return;
 			}
 			else if (go->tag == "1") {
@@ -333,7 +338,7 @@ void EnemyObject::AIInput() {
 	// If moving right & there is air 2 below change movement direction; Return;
 	if (!saveRight && !saveRightBottomY2 && objectMovement.x > 0 && goRightBottomX1Y2.size() > 0) {
 		for (std::shared_ptr<GameObject> go : goRightBottomX1Y2) {
-			if (go->tag == "0") {
+			if (go->tag == "0" && grounded) {
 				inputLeft = true;
 				inputRight = false;
 				return;
@@ -344,7 +349,7 @@ void EnemyObject::AIInput() {
 	// If moving right & there is lava on the right change movement direction; Return;
 	if (objectMovement.x > 0 && goRight.size() > 0) {
 		for (std::shared_ptr<GameObject> go : goRight) {
-			if (go->tag == "2") {
+			if (go->tag == "2" && grounded) {
 				inputLeft = true;
 				inputRight = false;
 				return;
@@ -354,7 +359,7 @@ void EnemyObject::AIInput() {
 	
 	///////////// Default collision checks (This part of the code is only executed if none of the ones above manipulated the movement)
 	// Check for collisions, if collision change movement direction
-	if (collisions.size() > 0) {
+	if (collisions.size() > 0 && grounded) {
 		for (std::shared_ptr<Collision> collision : collisions) {
 			if (collision->collisionSides.x > 0) {
 				inputRight = true;

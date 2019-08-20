@@ -9,4 +9,7 @@ Collision::Collision()
 
 Collision::~Collision()
 {
+	if (colliderObject != nullptr) {
+		colliderObject.reset();
+	}
 }

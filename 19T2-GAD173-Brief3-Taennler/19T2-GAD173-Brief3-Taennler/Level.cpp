@@ -19,47 +19,59 @@
 #include "AnimatedSprite.h"
 #endif // !AnimatedSprite
 
-
-
-#ifndef _IOSTREAM_
-#include <iostream>
-#endif // !_IOSTREAM_
-
 const float Level::defaultTileSize = 32;
-float Level::deltaTime = 0.01;
+float Level::deltaTime = 0.01f;
 std::shared_ptr<Level> Level::instance = nullptr;
 
-std::vector<std::string> SplitStringByDeli(std::string stringToSplit, char delimeter);// TODO
+std::vector<std::string> SplitStringByDeli(std::string stringToSplit, char delimeter); // Method not part of class! (Ugly)
 
 Level::Level(std::vector<std::vector<std::vector<std::string>>> pRawGrid, float pTileSize, std::string pLevelName) : rawGrid(pRawGrid), tileSize(pTileSize), levelName(pLevelName) {
-	deltaTime = 0.01;
-	gridSize.y = pRawGrid.size();
+	deltaTime = 0.01f;
+	gridSize.y = (int)pRawGrid.size();
 	if (gridSize.y > 0)
-		gridSize.x = pRawGrid[0].size();
-	InitializeGameObjectGrid();
+		gridSize.x = (int)pRawGrid[0].size();
+
+	InitializeGameObjectGrid(); // Creates gameobjects and positions them depending on the given grid
 }
 
 Level::Level()
 {
-	deltaTime = 0.01;
+	deltaTime = 0.01f;
 }
 
 Level::~Level()
 {
-	deltaTime = 0.01;
+	deltaTime = 0.01f;
 }
 
+/** Method RemoveGameObject(): Removes a gameobject from the level */
 void Level::RemoveGameObject(std::shared_ptr<GameObject> gameObject) {
-	gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), gameObject), gameObjects.end());
+	if (gameObject == nullptr)
+		return;
+	
+	try {
+		// Remove gameobject from gameObjects container
+		if (gameObjects.size() > 0 && std::find(gameObjects.begin(), gameObjects.end(), gameObject) != gameObjects.end())
+			gameObjects.erase(std::remove(gameObjects.begin(), gameObjects.end(), gameObject), gameObjects.end());
 
-	if (typeid(*gameObject) == typeid(MovableObject)) {
-		movableObjects.erase(std::remove(movableObjects.begin(), movableObjects.end(), gameObject), movableObjects.end());
+		// Check if given gameObject is a MovableObject. Remove it from the list.
+		if (movableObjects.size() > 0 && typeid(*gameObject) == typeid(MovableObject)) {
+			std::shared_ptr<MovableObject> moveableObject = std::dynamic_pointer_cast<MovableObject>(gameObject);
+			if (moveableObject != nullptr && std::find(movableObjects.begin(), movableObjects.end(), moveableObject) != movableObjects.end())
+				movableObjects.erase(std::remove(movableObjects.begin(), movableObjects.end(), moveableObject), movableObjects.end());
+		}
+
+		// Remove gameobject from the drawlayer container
+		if (gameObjectsDrawLayer.size() > 0 && gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end() && gameObjectsDrawLayer[gameObject->renderLayer].size() > 0 && std::find(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject) != gameObjectsDrawLayer[gameObject->renderLayer].end())
+			gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
 	}
+	catch (const std::exception& e) {
 
-	if(gameObjectsDrawLayer.find(gameObject->renderLayer) != gameObjectsDrawLayer.end())
-		gameObjectsDrawLayer[gameObject->renderLayer].erase(std::remove(gameObjectsDrawLayer[gameObject->renderLayer].begin(), gameObjectsDrawLayer[gameObject->renderLayer].end(), gameObject), gameObjectsDrawLayer[gameObject->renderLayer].end());
+	}
+	
 }
 
+/** Method InitializeGameObjectGrid(): Creates GameObjects from the grid loaded from the level file. */
 void Level::InitializeGameObjectGrid() {
 	gameObjectGrid = std::vector<std::vector<std::vector<std::shared_ptr<GameObject>>>>(gridSize.y, std::vector<std::vector<std::shared_ptr<GameObject>>>(gridSize.x, std::vector<std::shared_ptr<GameObject>>(0,nullptr)));
 	gameObjects = std::vector<std::shared_ptr<GameObject>>(0, nullptr);
@@ -68,48 +80,57 @@ void Level::InitializeGameObjectGrid() {
 		for (int x = 0; x < rawGrid[y].size(); x++) {
 			for (std::string s : rawGrid[y][x]) {
 				if (GameObjectPrefab::IsValidGOPrefabChar(s)) {
-					// TODO: Check if is GameObject or MovableObject!
-
-					// Differentiate between Gameobject type
-					if (GameObjectPrefab::gameObjectPrefabs[s]->isStatic) {// Simple GameObject
+					// Differentiate between Gameobject sub-types
+					if (GameObjectPrefab::gameObjectPrefabs[s]->isStatic) {// Simple GameObject, can't move
+						// Create new Gameobject
 						std::shared_ptr<GameObject> gameobj_ptr = std::make_shared<GameObject>(tileSize, tileSize);
 						gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
 						
+						// Check if this gameobject type has an animated sprite
 						if (GameObjectPrefab::gameObjectPrefabs[s]->isAnimatedSprite) {
 							AnimatedSprite * animSprite = new AnimatedSprite();
-							if (s == "2") {
+
+							// Initialize settings of animated sprite depending on its type
+							if (s == "2") { // Lava
 								animSprite->frameCountX = 5;
 								animSprite->frameCountY = 1;
 								animSprite->tileSize = tileSize;
+								animSprite->fps = 10;
 							}
-							else if (s == "Coin") {
+							else if (s == "Coin") { // Coin
 								animSprite->frameCountX = 5;
 								animSprite->frameCountY = 4;
 								animSprite->tileSize = tileSize;
+								animSprite->fps = 20;
 							}
+
+							// Delete old sprite if there is one
 							if (gameobj_ptr->sprite != nullptr)
 								delete gameobj_ptr->sprite;
 
+							// Assign point to animated sprite to the gameobject
 							gameobj_ptr->sprite = animSprite;
 						}
 
 						gameobj_ptr->sprite->setTexture(*GameObjectPrefab::gameObjectPrefabTextures[s]);
 						gameobj_ptr->SetPosition(sf::Vector2f(x*tileSize, y*tileSize));
 						gameobj_ptr->isSolid = GameObjectPrefab::gameObjectPrefabs[s]->isSolid;
-						gameobj_ptr->renderLayer = 0;
+						gameobj_ptr->renderLayer = 0; // Static objects will be drawn all the way in the back
 
-						// Set Tag
+						// Set Tag for later identification
 						gameobj_ptr->tag = s;
 
+						// Stores a reference of the static gameobject in the gameObjectGrid
 						gameObjectGrid[y][x].push_back(gameobj_ptr);
 
+						// This method will add the gameobject to a list and also apply an OnDestroy method to the gameobject
 						AddGameObject(gameobj_ptr);
 					}
-					else {
-						if (s == "Player") { // Player (Don't spawn him yet
+					else { // Non-static objects -> MovableObjects
+						if (s == "Player") { // The player doesn't get spawned yet, only his spawn location is set
 							playerSpawnLocation = sf::Vector2f(x*tileSize, y*tileSize);
 						}
-						else if (s == "Enemy") {
+						else if (s == "Enemy") { // EnemyObject (Derivative of MovableObject)
 							std::shared_ptr<EnemyObject> gameobj_ptr = std::make_shared<EnemyObject>(tileSize, tileSize);
 							gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
 							gameobj_ptr->sprite->setTexture(*GameObjectPrefab::gameObjectPrefabTextures[s]);
@@ -121,22 +142,25 @@ void Level::InitializeGameObjectGrid() {
 							gameobj_ptr->tag = s;
 							AddGameObject(gameobj_ptr);
 						}
-						else {// MovableObject
+						else {// Normal MovableObject
 							std::shared_ptr<MovableObject> gameobj_ptr = std::make_shared<MovableObject>(tileSize, tileSize);
-							//gameobj_ptr->sprite = sf::Sprite(*GameObjectPrefab::gameObjectPrefabTextures[s]);
+
 							gameobj_ptr->prefab = GameObjectPrefab::gameObjectPrefabs[s];
 
+							// Check if this gameobject type has an animated sprite
 							if (GameObjectPrefab::gameObjectPrefabs[s]->isAnimatedSprite) {
 								AnimatedSprite * animSprite = new AnimatedSprite();
 								if (s == "2") {
 									animSprite->frameCountX = 5;
 									animSprite->frameCountY = 1;
 									animSprite->tileSize = tileSize;
+									animSprite->fps = 10;
 								}
 								else if (s == "Coin") {
 									animSprite->frameCountX = 5;
 									animSprite->frameCountY = 4;
 									animSprite->tileSize = tileSize;
+									animSprite->fps = 20;
 								}
 								if (gameobj_ptr->sprite != nullptr)
 									delete gameobj_ptr->sprite;
@@ -150,6 +174,7 @@ void Level::InitializeGameObjectGrid() {
 
 							// Set Tag
 							gameobj_ptr->tag = s;
+
 							AddGameObject(gameobj_ptr);
 						}
 					}
@@ -159,25 +184,24 @@ void Level::InitializeGameObjectGrid() {
 	}
 }
 
+/** Method GetGameObjectsAtCoord(): Returns all static gameobjects at a specific location in the grid. */
 std::vector<std::shared_ptr<GameObject>> Level::GetGameObjectsAtCoord(unsigned int x, unsigned int y) {
 	if (gameObjectGrid.size() > y && gameObjectGrid[y].size() > x)
 		return gameObjectGrid[y][x];
+	return std::vector<std::shared_ptr<GameObject>>();
 }
 
-void Level::AddGameObjectAtCoord(unsigned int x, unsigned int y, GameObjectPrefab prefab) {
-
-}
-
+/** Method DoCollisionChecks(): Checks if there are collisions between MovableObjects and any other gameobject. */
 void Level::DoCollisionChecks() {
 	if (movableObjects.size() == 0)
 		return;
 
+	// Iterate through all movableobjects
 	for (std::shared_ptr<MovableObject> movableObject : movableObjects) {
 		if (movableObject == nullptr)
 			continue;
 
-		// Delete old collisions
-		
+		// Delete old collisions of movableobject
 		if (movableObject->collisions.size() > 0) {
 			for (std::shared_ptr<Collision> col : movableObject->collisions) {
 				col.reset();
@@ -185,24 +209,29 @@ void Level::DoCollisionChecks() {
 		}
 		movableObject->collisions.clear();
 
+		// Reset collision side values of movableobject
 		movableObject->solidHorCollisionSides = sf::Vector2f(0, 0);
 		movableObject->solidVertCollisionSides = sf::Vector2f(0, 0);
+
+		// Iterate through all gameobjects & check if there are any collisions with the current movableobject
 		for (std::shared_ptr<GameObject> gameObject : gameObjects) {
+			// Check if the gameobject isn't a nullpointer and it's not the current movableObject we're checking (To avoid collisions with the object itself)
 			if (gameObject != nullptr && gameObject != movableObject) {
+				// Check if a collision occured and from which side the it occured
 				sf::Vector2f collisions = GetCollisionSideVector(movableObject->collider.getGlobalBounds(), gameObject->collider.getGlobalBounds());
 
+				// Check if there are any collision on any side
 				if (collisions.x != 0 || collisions.y != 0) {
 					// Notify Collision for movable object
 					auto movCol = std::make_shared<Collision>();
 					movCol->colliderObject = gameObject;
 					movCol->collisionSides = collisions;
 
-					if (gameObject->isSolid) {
-						//std::cout << "Collision... Solid" << std::endl;
+					// Check if the collided object is solid or not
+					if (gameObject->isSolid) { // It's solid -> classified as collision
 						movableObject->OnCollisionEnter(movCol);
 					}
-					else {
-						//std::cout << "Collision... Trigger" << std::endl;
+					else { // It's not solid -> classified as a trigger
 						movableObject->OnTriggerEnter(movCol);
 					}
 
@@ -216,9 +245,10 @@ void Level::DoCollisionChecks() {
 					goCol->colliderObject = movableObject;
 					goCol->collisionSides = collisionsInverted;
 
-					if (movableObject->isSolid)
+					// Check if the collided object is solid or not
+					if (movableObject->isSolid) // It's solid -> classified as collision
 						gameObject->OnCollisionEnter(goCol);
-					else
+					else // It's not solid -> classified as a trigger
 						gameObject->OnTriggerEnter(goCol);
 				}
 			}
@@ -497,24 +527,26 @@ std::shared_ptr<Level> Level::LoadLevelFromFile(std::string file) {
 	return level;
 }
 
+/** Method DrawLevel: Draws all gameobjects in the given renderwindow ordered by their draw layer. */
 void Level::DrawLevel(sf::RenderWindow &rw, sf::View view) {
+	// Make sure we draw in the game window
 	rw.setView(view);
+
+	// Iterate through all draw layers (This map is sorted by it's int-key)
 	for (auto & layerEntries : gameObjectsDrawLayer) {
 		if (layerEntries.second.size() > 0) {
+			// Iterate through all gameobjects in the current layer
 			for (std::shared_ptr<GameObject> go : layerEntries.second) {
 				//rw.draw(go->collider); // For Debug
-				if (go != nullptr) {
-					rw.draw(*go->sprite);//(go->prefab->isAnimatedSprite?*go->GetAnimatedSprite : *go->GetSprite())
+				if (go != nullptr && go->sprite != nullptr) {
+					rw.draw(*go->sprite);// Draw the sprite of the gameobject
 				}
-					
 			}
 		}
-		
 	}
-
-
 }
 
+/** Method SpawnPlayer: Spawns & initializes the player object (Or assigns a new camera & sets its position if it already exists). */
 void Level::SpawnPlayer(std::shared_ptr<sf::View> playerCamera) {
 	if (playerObject != nullptr) {
 		playerObject->SetPosition(playerSpawnLocation);
@@ -533,89 +565,53 @@ void Level::SpawnPlayer(std::shared_ptr<sf::View> playerCamera) {
 	playerObject->renderLayer = 3;
 
 	AddGameObject(playerObject);
-	/*
-	playerObject->Start();
-
-	gameObjects.push_back(playerObject);
-	movableObjects.push_back(playerObject);
-	playerObject->renderLayer = 3;
-	if (gameObjectsDrawLayer.find(3) == gameObjectsDrawLayer.end()) {
-		gameObjectsDrawLayer.insert({ 3,std::vector<std::shared_ptr<GameObject>>(1,playerObject) });
-	}
-	else {
-		gameObjectsDrawLayer[3].push_back(playerObject);
-	}*/
-
 	this->playerObject = playerObject;
 }
 
+/** Method Update: Gets called every frame. Updates deltatime, checks for collisions between gameobjects. */
 void Level::Update() {
 	deltaTime = clock.restart().asSeconds();
-	//std::cout << deltaTime << std::endl;
-	/*
-	// Reset Collision Storage of last frame
-	for (std::shared_ptr<MovableObject> go : movableObjects) {
-		go->collisions.clear();
-		go->solidHorCollisionSides = sf::Vector2f(0, 0);
-	}*/
 
-	// Checks if a movable object collided with any object
+	// Checks if a movable object collided with any object (Has a cooldown)
 	if (collisionCheckCooldownCounter <= 0) {
 		DoCollisionChecks();
-		//collisionCheckCooldownCounter = 0.05;
+		collisionCheckCooldownCounter = 0.001f;
 	}
 	else
 		collisionCheckCooldownCounter -= deltaTime;
 
-	// Calls the Update() Method of each gameobject
+	// Calls the Update() Method of each gameobject & animates the sprite
 	for (std::shared_ptr<GameObject> go : gameObjects) {
 		if (go == nullptr)
 			continue;
 
 		go->Update();
 
-		
 		// Check if the sprite of the gameobject is an animated sprite
 		if (typeid(*go->sprite) == typeid(AnimatedSprite)) {
-			AnimatedSprite * animSprite = (AnimatedSprite*)(go->sprite);
-			animSprite->Update();
+			AnimatedSprite * animSprite = (AnimatedSprite*)(go->sprite); // Convert sprite pointer to AnimatedSprite
+			animSprite->Update(); // Update changes to next animation frame eventually
 		}
 			
 		// Check if object is out of bounds
 		if (typeid(*go) == typeid(MovableObject)) {
-			// TODO CHeck if its out of bounds NOT WORKING
+			// TODO Check if its out of bounds ( NOT WORKING )
 			sf::Vector2f outOfBounds = Level::IsObjectWithinAreaVectorInclusive(go->collider.getGlobalBounds(), sf::FloatRect(0, 0, gridSize.x*tileSize, gridSize.y * tileSize));
 			if (outOfBounds.x != 0 || outOfBounds.y != 0) {
-
 				std::shared_ptr<MovableObject> mo = std::dynamic_pointer_cast<MovableObject>(go);
-				mo->Destroy();
-				/*
-				sf::Vector2f newPos = mo->GetPosition();
-
-				if (outOfBounds.x < 0) {
-					newPos.x = 0; // TODO Ugly
-				}
-				else if (outOfBounds.x > 0) {
-					newPos.x = gridSize.x*tileSize; // TODO Ugly
-				}
-				if (outOfBounds.y < 0) {
-					newPos.y = 0; // TODO Ugly
-				}
-				else if (outOfBounds.y > 0) {
-					newPos.y = gridSize.y * tileSize; // TODO Ugly
-				}
-
-				mo->SetPosition(newPos);*/
+				mo->Destroy(); // Destroy the object
 			}
 		}
 	}
 }
 
+/** Method AddGameObject: Adds the gameobject to the active "world". Calls Start method of the gameobject and adds it to the draw pipeline. */
 void Level::AddGameObject(std::shared_ptr<GameObject> gameObject) {
-	gameObject->Start();
+	gameObject->Start(); // Start() may contain initializing values.
 
 	gameObjects.push_back(gameObject);
 
+	// Check if the gameobject is a MovableObject (Or a sub-type)
 	if (typeid(*gameObject) == typeid(MovableObject) || typeid(*gameObject) == typeid(PlayerObject) || typeid(*gameObject) == typeid(EnemyObject)) {
 		movableObjects.push_back(std::dynamic_pointer_cast<MovableObject>(gameObject));
 	}
@@ -624,8 +620,9 @@ void Level::AddGameObject(std::shared_ptr<GameObject> gameObject) {
 	auto deleteObjFunc = [this, gameObject]() {
 		RemoveGameObject(gameObject);
 	};
-	gameObject->OnRequestDestroy.push_back(deleteObjFunc);
+	gameObject->OnRequestDestroy.push_back(deleteObjFunc); // Assign Deletion Function to gameobject
 
+	// Add the gameobject to the draw pipeline
 	if (gameObjectsDrawLayer.find(gameObject->renderLayer) == gameObjectsDrawLayer.end()) {
 		gameObjectsDrawLayer.insert({ gameObject->renderLayer,std::vector<std::shared_ptr<GameObject>>(1,gameObject) });
 	}
@@ -634,6 +631,7 @@ void Level::AddGameObject(std::shared_ptr<GameObject> gameObject) {
 	}
 }
 
+/** Method UnloadLevel: Unloads a level. Resets all pointers to gameobjects & more. */
 void Level::UnloadLevel() {
 	if (gameObjects.size() > 0) {
 		for (std::shared_ptr<GameObject> go : gameObjects) {
@@ -671,6 +669,10 @@ void Level::UnloadLevel() {
 			}
 		}
 		gameObjectsDrawLayer.clear();
+	}
+
+	if (gameObjectGrid.size() > 0) {
+		gameObjectGrid.clear();
 	}
 	playerObject.reset();
 

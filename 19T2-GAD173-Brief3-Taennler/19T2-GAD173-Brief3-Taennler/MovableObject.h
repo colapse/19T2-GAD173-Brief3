@@ -19,16 +19,16 @@ public:
 	bool blockMovement = false; // If true, movement input will be ignored
 
 	float gravity = 400; // Gravity force that pulls the object down (Positive number = down force)
-	float groundFriction = 0.019; // Friction that slows down the movement while on the ground
-	float airFriction = 0.001; // Friction that slows down the movement while in air
+	float groundFriction = 0.019f; // Friction that slows down the movement while on the ground
+	float airFriction = 0.001f; // Friction that slows down the movement while in air
 
 	float groundSpeed = 50; // Movement speed on the ground
 	float airSpeed = 10; // Movement speed in the air
 
-	float jumpForce = -30; // Up-force applied when jumping (Per second while jump input is active)
-	float maxJumpForce = -250; // Maximum up-force that can be applied through jumping
+	float jumpForce = -25; // Up-force applied when jumping (Per second while jump input is active)
+	float maxJumpForce = -180; // Maximum up-force that can be applied through jumping
 	float accumulatedJumpForce = 0; // So far applied jumpforce
-	float jumpForceMultiplier = 1; // Multiplier for applied jumpforce (To make it non-gradual)
+	float jumpForceMultiplier = 3; // Multiplier for applied jumpforce (To make it non-gradual)
 
 	sf::Vector2f objectMovement; // Movement vector (Speed & direction)
 	sf::Vector2f forceAddition; // Additional force that can be applied
